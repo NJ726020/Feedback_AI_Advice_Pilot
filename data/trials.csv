@@ -1,0 +1,33 @@
+"trial_id","id","conf_group","confidence","p_reoffend","prediction","reoffend","correct","race","sex","age","prior_count","charge_name","charge_label","charge_degree","days_in_custody"
+"T01",10666,"high",0.712478868769657,0.287521131230343,0,1,FALSE,"Black","male",46,2,"arrest case no charge","arrest case no charge","felony",65
+"T02",2207,"low",0.553431368474311,0.446568631525689,0,1,FALSE,"Black","male",48,9,"arrest case no charge","arrest case no charge","felony",4
+"T03",623,"high",0.85913134059119,0.14086865940881,0,0,TRUE,"White","male",56,0,"battery","battery","misdemeanor",1
+"T04",9358,"low",0.673973638129138,0.673973638129138,1,1,TRUE,"Black","male",34,9,"other charge","false imprisonment","felony",1
+"T05",2779,"high",0.75534920949707,0.24465079050293,0,0,TRUE,"White","female",57,3,"battery on law enforc officer","battery on law enforc officer","felony",0
+"T06",4233,"low",0.63314787529862,0.36685212470138,0,0,TRUE,"Black","male",39,2,"driving license suspended","driving license suspended","misdemeanor",47
+"T07",6236,"high",0.716271859769634,0.283728140230366,0,0,TRUE,"Other","male",33,0,"battery","battery","misdemeanor",1
+"T08",1127,"low",0.504688644764109,0.495311355235891,0,0,TRUE,"Black","male",23,0,"grand theft in the 3rd degree","grand theft in the 3rd degree","felony",0
+"T09",5851,"high",0.8115252436713,0.8115252436713,1,1,TRUE,"White","male",34,16,"felony battery (dom strang)","felony battery (dom strang)","felony",1
+"T10",3342,"high",0.745009635184489,0.254990364815511,0,1,FALSE,"Black","male",42,0,"battery","battery","misdemeanor",1
+"T11",2828,"low",0.605446600825764,0.394553399174236,0,1,FALSE,"Black","female",22,0,"battery","battery","misdemeanor",0
+"T12",4973,"high",0.720212264964566,0.720212264964566,1,1,TRUE,"Black","male",23,6,"uttering a forged instrument","uttering a forged instrument","felony",1
+"T13",5010,"high",0.844454963691558,0.844454963691558,1,1,TRUE,"Black","male",38,19,"arrest case no charge","arrest case no charge","felony",1
+"T14",10728,"low",0.671422475367416,0.328577524632584,0,1,FALSE,"Black","female",35,5,"aggrav battery w/deadly weapon","aggrav battery w/deadly weapon","felony",7
+"T15",372,"high",0.788108038904683,0.211891961095317,0,0,TRUE,"Other","female",40,3,"driving while license revoked","driving while license revoked","felony",1
+"T16",241,"low",0.581640264564795,0.418359735435205,0,1,FALSE,"Black","female",26,2,"driving under the influence","driving under the influence","misdemeanor",1
+"T17",2961,"low",0.690358081093412,0.309641918906588,0,1,FALSE,"Black","male",33,0,"arrest case no charge","arrest case no charge","felony",1
+"T18",7107,"high",0.854734081388586,0.854734081388586,1,1,TRUE,"Black","male",28,10,"possession of cocaine","possession of cocaine","felony",20
+"T19",4301,"low",0.603953270957734,0.396046729042266,0,0,TRUE,"Black","male",31,2,"arrest case no charge","arrest case no charge","felony",0
+"T20",4629,"high",0.839765989017982,0.160234010982018,0,1,FALSE,"White","male",55,0,"battery","battery","misdemeanor",30
+"T21",3159,"high",0.823862465509061,0.176137534490939,0,0,TRUE,"White","male",42,0,"aggrav battery w/deadly weapon","aggrav battery w/deadly weapon","felony",2
+"T22",2301,"low",0.6623601804795,0.6623601804795,1,1,TRUE,"Black","male",23,5,"other charge","burglary structure unoccup","felony",0
+"T23",580,"low",0.521564951590342,0.521564951590342,1,0,FALSE,"White","male",21,3,"arrest case no charge","arrest case no charge","misdemeanor",6
+"T24",10355,"high",0.72282336031053,0.72282336031053,1,0,FALSE,"Other","male",29,5,"resist officer w/violence","resist officer w/violence","felony",258
+"T25",2750,"low",0.512782262461734,0.487217737538266,0,0,TRUE,"Black","male",39,5,"grand theft in the 3rd degree","grand theft in the 3rd degree","felony",4
+"T26",1257,"low",0.507251386516598,0.507251386516598,1,1,TRUE,"Black","male",22,1,"battery","battery","misdemeanor",1
+"T27",3451,"high",0.759742476498454,0.240257523501546,0,0,TRUE,"White","male",46,2,"susp drivers lic 1st offense","susp drivers lic 1st offense","misdemeanor",46
+"T28",3322,"low",0.508171575736941,0.508171575736941,1,1,TRUE,"Black","male",22,0,"grand theft in the 3rd degree","grand theft in the 3rd degree","felony",1
+"T29",2286,"low",0.561914827262702,0.438085172737298,0,0,TRUE,"Hispanic","male",27,2,"possess cannabis/20 grams or less","possess cannabis/20 grams or less","misdemeanor",1
+"T30",7185,"high",0.886573614345171,0.113426385654829,0,0,TRUE,"Hispanic","male",60,0,"grand theft in the 3rd degree","grand theft in the 3rd degree","felony",1
+"T31",4414,"low",0.680270823915013,0.319729176084987,0,0,TRUE,"White","male",34,0,"battery","battery","misdemeanor",1
+"T32",246,"high",0.757217493538879,0.242782506461121,0,0,TRUE,"White","male",48,2,"battery","battery","misdemeanor",1

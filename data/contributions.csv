@@ -1,0 +1,257 @@
+"trial_id","feature","value"
+"T01","Gender - male",0.309806170507456
+"T01","Prior Count - 2",0.28767217954773
+"T01","Days in Custody - 65",0.232517887301093
+"T01","Charge Degree - felony",0.069910308295741
+"T01","Race - Black",0.0657824374599758
+"T01","Charge Name - Arrest Case No Charge",0
+"T01","Age - 46",-0.718007161615707
+"T01","base rate",-1.1551357178641
+"T02","Prior Count - 9",1.29452480796478
+"T02","Gender - male",0.309806170507456
+"T02","Charge Degree - felony",0.069910308295741
+"T02","Race - Black",0.0657824374599758
+"T02","Days in Custody - 4",0.0143087930646826
+"T02","Charge Name - Arrest Case No Charge",0
+"T02","Age - 48",-0.813741449831135
+"T02","base rate",-1.1551357178641
+"T03","Gender - male",0.309806170507456
+"T03","Charge Name - Battery",0.230337104793219
+"T03","Days in Custody - 1",0.00357719826617065
+"T03","Race - White",0
+"T03","Prior Count - 0",0
+"T03","Charge Degree - misdemeanor",0
+"T03","Age - 56",-1.19667860269285
+"T03","base rate",-1.1551357178641
+"T04","Prior Count - 9",1.29452480796478
+"T04","Gender - male",0.309806170507456
+"T04","Charge Name - False Imprisonment",0.28134898254057
+"T04","Charge Degree - felony",0.069910308295741
+"T04","Race - Black",0.0657824374599758
+"T04","Days in Custody - 1",0.00357719826617065
+"T04","Age - 34",-0.143601432323141
+"T04","base rate",-1.1551357178641
+"T05","Charge Name - Battery on Law Enforc Officer",0.770914564485156
+"T05","Prior Count - 3",0.431508269321594
+"T05","Charge Degree - felony",0.069910308295741
+"T05","Race - White",0
+"T05","Gender - female",0
+"T05","Days in Custody - 0",0
+"T05","Age - 57",-1.24454574680056
+"T05","base rate",-1.1551357178641
+"T06","Gender - male",0.309806170507456
+"T06","Prior Count - 2",0.28767217954773
+"T06","Days in Custody - 47",0.168128318510021
+"T06","Charge Name - Driving License Suspended",0.160938596460181
+"T06","Race - Black",0.0657824374599758
+"T06","Charge Degree - misdemeanor",0
+"T06","Age - 39",-0.382937152861711
+"T06","base rate",-1.1551357178641
+"T07","Gender - male",0.309806170507456
+"T07","Charge Name - Battery",0.230337104793219
+"T07","Days in Custody - 1",0.00357719826617065
+"T07","Prior Count - 0",0
+"T07","Charge Degree - misdemeanor",0
+"T07","Age - 33",-0.0957342882154276
+"T07","Race - Other",-0.218893727806479
+"T07","base rate",-1.1551357178641
+"T08","Age - 23",0.382937152861711
+"T08","Gender - male",0.309806170507456
+"T08","Charge Name - Grand Theft in the 3rd Degree",0.307944519934813
+"T08","Charge Degree - felony",0.069910308295741
+"T08","Race - Black",0.0657824374599758
+"T08","Prior Count - 0",0
+"T08","Days in Custody - 0",0
+"T08","base rate",-1.1551357178641
+"T09","Prior Count - 16",2.30137743638184
+"T09","Gender - male",0.309806170507456
+"T09","Charge Name - Felony Battery (Dom Strang)",0.0740174513872927
+"T09","Charge Degree - felony",0.069910308295741
+"T09","Days in Custody - 1",0.00357719826617065
+"T09","Race - White",0
+"T09","Age - 34",-0.143601432323141
+"T09","base rate",-1.1551357178641
+"T10","Gender - male",0.309806170507456
+"T10","Charge Name - Battery",0.230337104793219
+"T10","Race - Black",0.0657824374599758
+"T10","Days in Custody - 1",0.00357719826617065
+"T10","Prior Count - 0",0
+"T10","Charge Degree - misdemeanor",0
+"T10","Age - 42",-0.526538585184852
+"T10","base rate",-1.1551357178641
+"T11","Age - 22",0.430804296969424
+"T11","Charge Name - Battery",0.230337104793219
+"T11","Race - Black",0.0657824374599758
+"T11","Gender - female",0
+"T11","Prior Count - 0",0
+"T11","Charge Degree - misdemeanor",0
+"T11","Days in Custody - 0",0
+"T11","base rate",-1.1551357178641
+"T12","Prior Count - 6",0.863016538643189
+"T12","Charge Name - Uttering a Forged Instrument",0.4056206663269
+"T12","Age - 23",0.382937152861711
+"T12","Gender - male",0.309806170507456
+"T12","Charge Degree - felony",0.069910308295741
+"T12","Race - Black",0.0657824374599758
+"T12","Days in Custody - 1",0.00357719826617065
+"T12","base rate",-1.1551357178641
+"T13","Prior Count - 19",2.73288570570343
+"T13","Gender - male",0.309806170507456
+"T13","Charge Degree - felony",0.069910308295741
+"T13","Race - Black",0.0657824374599758
+"T13","Days in Custody - 1",0.00357719826617065
+"T13","Charge Name - Arrest Case No Charge",0
+"T13","Age - 38",-0.335070008753997
+"T13","base rate",-1.1551357178641
+"T14","Prior Count - 5",0.719180448869324
+"T14","Charge Degree - felony",0.069910308295741
+"T14","Race - Black",0.0657824374599758
+"T14","Days in Custody - 7",0.0250403878631946
+"T14","Gender - female",0
+"T14","Age - 35",-0.191468576430855
+"T14","Charge Name - Aggrav Battery w/Deadly Weapon",-0.247935041635462
+"T14","base rate",-1.1551357178641
+"T15","Prior Count - 3",0.431508269321594
+"T15","Charge Degree - felony",0.069910308295741
+"T15","Days in Custody - 1",0.00357719826617065
+"T15","Gender - female",0
+"T15","Charge Name - Driving While License Revoked",-0.0137206916143378
+"T15","Race - Other",-0.218893727806479
+"T15","Age - 40",-0.430804296969424
+"T15","base rate",-1.1551357178641
+"T16","Prior Count - 2",0.28767217954773
+"T16","Age - 26",0.239335720538569
+"T16","Charge Name - Driving under the Influence",0.229257701046804
+"T16","Race - Black",0.0657824374599758
+"T16","Days in Custody - 1",0.00357719826617065
+"T16","Gender - female",0
+"T16","Charge Degree - misdemeanor",0
+"T16","base rate",-1.1551357178641
+"T17","Gender - male",0.309806170507456
+"T17","Charge Degree - felony",0.069910308295741
+"T17","Race - Black",0.0657824374599758
+"T17","Days in Custody - 1",0.00357719826617065
+"T17","Prior Count - 0",0
+"T17","Charge Name - Arrest Case No Charge",0
+"T17","Age - 33",-0.0957342882154276
+"T17","base rate",-1.1551357178641
+"T18","Prior Count - 10",1.43836089773865
+"T18","Charge Name - Possession of Cocaine",0.828354926559409
+"T18","Gender - male",0.309806170507456
+"T18","Age - 28",0.143601432323141
+"T18","Days in Custody - 20",0.0715439653234131
+"T18","Charge Degree - felony",0.069910308295741
+"T18","Race - Black",0.0657824374599758
+"T18","base rate",-1.1551357178641
+"T19","Gender - male",0.309806170507456
+"T19","Prior Count - 2",0.28767217954773
+"T19","Charge Degree - felony",0.069910308295741
+"T19","Race - Black",0.0657824374599758
+"T19","Age - 31",0
+"T19","Charge Name - Arrest Case No Charge",0
+"T19","Days in Custody - 0",0
+"T19","base rate",-1.1551357178641
+"T20","Gender - male",0.309806170507456
+"T20","Charge Name - Battery",0.230337104793219
+"T20","Days in Custody - 30",0.10731594798512
+"T20","Race - White",0
+"T20","Prior Count - 0",0
+"T20","Charge Degree - misdemeanor",0
+"T20","Age - 55",-1.14881145858513
+"T20","base rate",-1.1551357178641
+"T21","Gender - male",0.309806170507456
+"T21","Charge Degree - felony",0.069910308295741
+"T21","Days in Custody - 2",0.00715439653234131
+"T21","Race - White",0
+"T21","Prior Count - 0",0
+"T21","Charge Name - Aggrav Battery w/Deadly Weapon",-0.247935041635462
+"T21","Age - 42",-0.526538585184852
+"T21","base rate",-1.1551357178641
+"T22","Prior Count - 5",0.719180448869324
+"T22","Age - 23",0.382937152861711
+"T22","Gender - male",0.309806170507456
+"T22","Charge Name - Burglary Structure Unoccup",0.28134898254057
+"T22","Charge Degree - felony",0.069910308295741
+"T22","Race - Black",0.0657824374599758
+"T22","Days in Custody - 0",0
+"T22","base rate",-1.1551357178641
+"T23","Age - 21",0.478671441077138
+"T23","Prior Count - 3",0.431508269321594
+"T23","Gender - male",0.309806170507456
+"T23","Days in Custody - 6",0.0214631895970239
+"T23","Race - White",0
+"T23","Charge Name - Arrest Case No Charge",0
+"T23","Charge Degree - misdemeanor",0
+"T23","base rate",-1.1551357178641
+"T24","Days in Custody - 258",0.922917152672029
+"T24","Prior Count - 5",0.719180448869324
+"T24","Gender - male",0.309806170507456
+"T24","Charge Name - Resist Officer w/Violence",0.214990963136294
+"T24","Age - 29",0.0957342882154276
+"T24","Charge Degree - felony",0.069910308295741
+"T24","Race - Other",-0.218893727806479
+"T24","base rate",-1.1551357178641
+"T25","Prior Count - 5",0.719180448869324
+"T25","Gender - male",0.309806170507456
+"T25","Charge Name - Grand Theft in the 3rd Degree",0.307944519934813
+"T25","Charge Degree - felony",0.069910308295741
+"T25","Race - Black",0.0657824374599758
+"T25","Days in Custody - 4",0.0143087930646826
+"T25","Age - 39",-0.382937152861711
+"T25","base rate",-1.1551357178641
+"T26","Age - 22",0.430804296969424
+"T26","Gender - male",0.309806170507456
+"T26","Charge Name - Battery",0.230337104793219
+"T26","Prior Count - 1",0.143836089773865
+"T26","Race - Black",0.0657824374599758
+"T26","Days in Custody - 1",0.00357719826617065
+"T26","Charge Degree - misdemeanor",0
+"T26","base rate",-1.1551357178641
+"T27","Gender - male",0.309806170507456
+"T27","Prior Count - 2",0.28767217954773
+"T27","Days in Custody - 46",0.16455112024385
+"T27","Race - White",0
+"T27","Charge Degree - misdemeanor",0
+"T27","Charge Name - Susp Drivers Lic 1st Offense",-0.0401547573024388
+"T27","Age - 46",-0.718007161615707
+"T27","base rate",-1.1551357178641
+"T28","Age - 22",0.430804296969424
+"T28","Gender - male",0.309806170507456
+"T28","Charge Name - Grand Theft in the 3rd Degree",0.307944519934813
+"T28","Charge Degree - felony",0.069910308295741
+"T28","Race - Black",0.0657824374599758
+"T28","Days in Custody - 1",0.00357719826617065
+"T28","Prior Count - 0",0
+"T28","base rate",-1.1551357178641
+"T29","Charge Name - Possess Cannabis/20 Grams or less",0.317840076822017
+"T29","Gender - male",0.309806170507456
+"T29","Prior Count - 2",0.28767217954773
+"T29","Age - 27",0.191468576430855
+"T29","Days in Custody - 1",0.00357719826617065
+"T29","Charge Degree - misdemeanor",0
+"T29","Race - Hispanic",-0.204165419428965
+"T29","base rate",-1.1551357178641
+"T30","Gender - male",0.309806170507456
+"T30","Charge Name - Grand Theft in the 3rd Degree",0.307944519934813
+"T30","Charge Degree - felony",0.069910308295741
+"T30","Days in Custody - 1",0.00357719826617065
+"T30","Prior Count - 0",0
+"T30","Race - Hispanic",-0.204165419428965
+"T30","Age - 60",-1.3881471791237
+"T30","base rate",-1.1551357178641
+"T31","Gender - male",0.309806170507456
+"T31","Charge Name - Battery",0.230337104793219
+"T31","Days in Custody - 1",0.00357719826617065
+"T31","Race - White",0
+"T31","Prior Count - 0",0
+"T31","Charge Degree - misdemeanor",0
+"T31","Age - 34",-0.143601432323141
+"T31","base rate",-1.1551357178641
+"T32","Gender - male",0.309806170507456
+"T32","Prior Count - 2",0.28767217954773
+"T32","Charge Name - Battery",0.230337104793219
+"T32","Days in Custody - 1",0.00357719826617065
+"T32","Race - White",0
+"T32","Charge Degree - misdemeanor",0
+"T32","Age - 48",-0.813741449831135
+"T32","base rate",-1.1551357178641
