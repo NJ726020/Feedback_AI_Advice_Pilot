@@ -1,0 +1,401 @@
+"charge_original","category","n"
+"abuse without great harm","Other Offense",2
+"accessory after the fact","Other Offense",1
+"agg abuse elderlly/disabled adult","Other Offense",1
+"agg assault law enforc officer","Battery on a Police Officer",1
+"agg assault w/int com fel dome","Aggravated Assault",5
+"agg battery grt/bod/harm","Aggravated Battery",30
+"agg fleeing and eluding","Resisting or Fleeing the Police",7
+"agg fleeing/eluding high speed","Resisting or Fleeing the Police",3
+"aggr child abuse-torture,punish","Child Abuse or Neglect",1
+"aggrav battery w/deadly weapon","Aggravated Battery",60
+"aggrav child abuse-agg battery","Aggravated Battery",4
+"aggrav child abuse-causes harm","Child Abuse or Neglect",1
+"aggrav stalking after injunctn","Domestic Violence",6
+"aggravated assault","Aggravated Assault",6
+"aggravated assault w/dead weap","Aggravated Assault",89
+"aggravated assault w/firearm","Aggravated Assault",21
+"aggravated assault w/o firearm","Aggravated Assault",3
+"aggravated battery","Aggravated Battery",22
+"aggravated battery (firearm)","Aggravated Battery",1
+"aggravated battery (firearm/actual possession)","Aggravated Battery",1
+"aggravated battery / pregnant","Aggravated Battery",44
+"aggravated battery on 65/older","Aggravated Battery",2
+"aggress/panhandle/beg/solict","Other Offense",1
+"aide/abet prostitution lewdness","Sexual Offense",1
+"aiding escape","Other Offense",1
+"alcoholic beverage violation-fl","Driving License Offense",2
+"armed trafficking in cannabis","Drug Dealing",1
+"arrest case no charge","No specific charge recorded",1019
+"arson in the first degree","Other Offense",2
+"assault","Other Offense",33
+"assault law enforcement officer","Battery on a Police Officer",1
+"att burgl conv occp","Burglary",1
+"att burgl struc/conv dwel/occp","Burglary",1
+"att burgl unoccupied dwel","Burglary",12
+"att tamper w/physical evidence","Tampering with Evidence or Witnesses",3
+"attempt armed burglary dwell","Burglary",1
+"attempt burglary (struct)","Burglary",1
+"attempted burg/convey/unocc","Other Offense",3
+"attempted burg/struct/unocc","Other Offense",1
+"attempted deliv control subst","Other Offense",1
+"attempted robbery firearm","Robbery",1
+"attempted robbery no weapon","Robbery",5
+"attempted robbery weapon","Robbery",1
+"battery","Battery",1024
+"battery emergency care provide","Battery",2
+"battery on a person over 65","Battery",16
+"battery on law enforc officer","Battery on a Police Officer",50
+"battery on parking enfor speci","Battery",1
+"battery spouse or girlfriend","Battery",1
+"bribery athletic contests","Other Offense",1
+"burgl dwel/struct/convey armed","Burglary",1
+"burglary assault/battery armed","Battery",2
+"burglary conveyance armed","Burglary",6
+"burglary conveyance assault/bat","Other Offense",6
+"burglary conveyance occupied","Burglary",4
+"burglary conveyance unoccup","Burglary",58
+"burglary dwelling armed","Burglary",5
+"burglary dwelling assault/batt","Battery",20
+"burglary dwelling occupied","Burglary",23
+"burglary structure assault/batt","Battery",1
+"burglary structure occupied","Burglary",1
+"burglary structure unoccup","Burglary",34
+"burglary unoccupied dwelling","Burglary",68
+"burglary with assault/battery","Battery",8
+"carjacking w/o deadly weapon","Weapons Offense",1
+"carjacking with a firearm","Weapons Offense",1
+"carry open/uncov bev in pub","Other Offense",2
+"carrying a concealed weapon","Weapons Offense",2
+"carrying concealed firearm","Weapons Offense",31
+"cash item w/intent to defraud","Drug Dealing",1
+"cause anoth phone ring repeat","Other Offense",1
+"child abuse","Child Abuse or Neglect",15
+"compulsory attendance violation","Other Offense",1
+"compulsory sch attnd violation","Other Offense",1
+"computer pornography","Other Offense",1
+"consp traff oxycodone 28g><30k","Possession of Other Drugs",1
+"consp traff oxycodone 4g><14g","Possession of Other Drugs",1
+"conspiracy dealing stolen prop","Other Offense",1
+"conspiracy to deliver cocaine","Drug Dealing",1
+"consume alcoholic bev pub","Driving License Offense",1
+"contradict statement","Other Offense",1
+"contribute delinquency of a minor","Other Offense",2
+"corrupt public servant","Driving License Offense",9
+"counterfeit lic plates/sticker","Driving License Offense",1
+"crim attempt/solic/consp","Other Offense",1
+"crim attempt/solicit/consp","Other Offense",2
+"crim use of personal id info","Forgery or Fraud",30
+"crimin mischief damage $1000+","Criminal Mischief",15
+"criminal attempt 3rd deg felon","Other Offense",1
+"criminal mischief","Criminal Mischief",12
+"criminal mischief damage <$200","Criminal Mischief",12
+"criminal mischief>$200<$1000","Criminal Mischief",9
+"crlty twrd child urge oth act","Other Offense",1
+"cruelty to animals","Other Offense",1
+"cruelty toward child","Child Abuse or Neglect",10
+"culpable negligence","Other Offense",2
+"d.u.i. serious bodily injury","Other Offense",1
+"dealing in stolen property","Other Offense",10
+"defrauding innkeeper $300/more","Forgery or Fraud",1
+"del 3,4 methylenedioxymethcath","Possession of Other Drugs",1
+"del cannabis at/near park","Possession of Cannabis",1
+"del cannabis for consideration","Possession of Cannabis",4
+"del morphine at/near park","Possession of Other Drugs",1
+"del of jwh-250 2-methox 1-pentyl","Other Offense",1
+"deliver 3,4 methylenediox","Drug Dealing",14
+"deliver alprazolam","Drug Dealing",1
+"deliver cannabis","Drug Dealing",15
+"deliver cannabis 1000ftsch","Drug Dealing",1
+"deliver cocaine","Drug Dealing",25
+"deliver cocaine 1000ft church","Drug Dealing",1
+"deliver cocaine 1000ft park","Drug Dealing",1
+"deliver cocaine 1000ft school","Drug Dealing",1
+"deliver cocaine 1000ft store","Drug Dealing",1
+"delivery of 5-fluoro pb-22","Drug Dealing",1
+"delivery of drug paraphernalia","Drug Dealing",1
+"delivery of heroin","Drug Dealing",1
+"depriv leo of protect/communic","Other Offense",2
+"discharge firearm from vehicle","Weapons Offense",1
+"disorderly conduct","Disorderly Conduct",27
+"disorderly intoxication","Disorderly Conduct",14
+"disrupting school function","Other Offense",1
+"doc/cause public danger","Driving License Offense",2
+"drivg while lic suspd/revk/can","Driving License Offense",7
+"driving license suspended","Driving License Offense",60
+"driving under the influence","Driving Under the Influence",124
+"driving while license revoked","Driving License Offense",174
+"dui - enhanced","Driving Under the Influence",14
+"dui - property damage/personal injury","Driving Under the Influence",1
+"dui blood alcohol above 0.20","Driving Under the Influence",4
+"dui level 0.15 or minor in veh","Driving Under the Influence",53
+"dui property damage/injury","Driving Under the Influence",74
+"dui- enhanced","Driving Under the Influence",6
+"dui/property damage/persnl inj","Driving Under the Influence",1
+"dwi w/inj susp lic / habit off","Driving License Offense",2
+"dwls canceled disqul 1st off","Driving License Offense",2
+"dwls susp/cancel revoked","Driving License Offense",1
+"escape","Other Offense",2
+"exhibition weapon school prop","Weapons Offense",1
+"expired dl more than 6 months","Driving License Offense",7
+"exploit elderly person 20-100k","Other Offense",1
+"exposes culpable negligence","Other Offense",11
+"extradition/defendants","Other Offense",3
+"fabricating physical evidence","Other Offense",1
+"fail obey driv lic restrictions","Driving License Offense",1
+"fail register career offender","Other Traffic Offense",1
+"fail register vehicle","Other Traffic Offense",6
+"fail sex offend report bylaw","Sexual Offense",1
+"fail to obey police officer","Resisting or Fleeing the Police",3
+"fail to redeliv hire/leas prop","Other Offense",3
+"fail to secure load","Other Offense",1
+"failure to pay taxi cab charge","Other Offense",1
+"failure to return hired vehicle","Other Offense",3
+"false 911 call","Other Offense",1
+"false bomb report","Other Offense",1
+"false imprisonment","Other Offense",21
+"false info leo during invest","Other Offense",1
+"false motor veh insurance card","Other Offense",2
+"false name by person arrest","Other Offense",1
+"false ownership info/pawn item","Other Offense",16
+"falsely impersonating officer","Other Offense",1
+"fel drive license perm revoke","Driving License Offense",4
+"felon in pos of firearm or amm","Weapons Offense",3
+"felony batt(great bodily harm)","Aggravated Battery",7
+"felony battery","Battery",10
+"felony battery (dom strang)","Domestic Violence",84
+"felony battery w/prior convict","Battery",38
+"felony committing prostitution","Other Offense",4
+"felony driving while lic suspd","Driving License Offense",76
+"felony dui (level 3)","Driving Under the Influence",7
+"felony petit theft","Petty Theft",50
+"felony/driving under influence","Driving Under the Influence",7
+"fighting/baiting animals","Other Offense",2
+"flee/elude leo-agg flee unsafe","Resisting or Fleeing the Police",1
+"fleeing or attmp eluding a leo","Resisting or Fleeing the Police",15
+"fleeing or eluding a leo","Resisting or Fleeing the Police",8
+"forging bank bills/promis note","Forgery or Fraud",3
+"fraud obtain food or lodging","Forgery or Fraud",1
+"fraudulent use of credit card","Forgery or Fraud",6
+"gambling/gamb paraphernalia","Other Offense",1
+"giving false crime report","Other Offense",1
+"grand theft (motor vehicle)","Grand Theft",76
+"grand theft dwell property","Grand Theft",4
+"grand theft firearm","Grand Theft",6
+"grand theft in the 1st degree","Grand Theft",4
+"grand theft in the 3rd degree","Grand Theft",361
+"grand theft of a fire extinquisher","Grand Theft",1
+"grand theft of the 2nd degree","Grand Theft",2
+"grand theft on 65 yr or older","Grand Theft",3
+"harass witness/victm/informnt","Tampering with Evidence or Witnesses",1
+"hiring with intent to defraud","Forgery or Fraud",1
+"insurance fraud","Forgery or Fraud",1
+"interfere w/traf cont dev rr","Other Offense",1
+"interference with custody","Other Offense",1
+"intoxicated/safety of another","Other Offense",1
+"introduce contraband into jail","Other Offense",7
+"issuing a worthless draft","Other Offense",1
+"kidnapping / domestic violence","Domestic Violence",2
+"lease for purpose trafficking","Drug Dealing",1
+"leave acc/attend veh/more $50","Other Traffic Offense",12
+"leave accd/attend veh/less $50","Other Traffic Offense",2
+"leaving acc/unattended veh","Other Traffic Offense",9
+"leaving the scene of accident","Other Traffic Offense",13
+"lewd act presence child 16-","Sexual Offense",1
+"lewd or lascivious molestation","Sexual Offense",10
+"lewd/lasc battery pers 12+/<16","Sexual Offense",5
+"lewd/lasc exhib presence <16yr","Sexual Offense",1
+"lewd/lasciv molest elder persn","Sexual Offense",1
+"lewdness violation","Sexual Offense",2
+"license suspended revoked","Driving License Offense",1
+"littering","Other Offense",1
+"live on earnings of prostitute","Other Offense",3
+"lve/scen/acc/veh/prop/damage","Other Traffic Offense",13
+"manage busn w/o city occup lic","Other Offense",1
+"manslaughter w/weapon/firearm","Weapons Offense",1
+"manufacture cannabis","Possession of Cannabis",7
+"misuse of 911 or e911 system","Other Offense",1
+"money launder 100k or more dols","Other Offense",1
+"murder in 2nd degree","Other Offense",1
+"murder in 2nd degree w/firearm","Weapons Offense",1
+"murder in the first degree","Other Offense",1
+"neglect child / bodily harm","Child Abuse or Neglect",4
+"neglect child / no bodily harm","Child Abuse or Neglect",19
+"neglect/abuse elderly person","Other Offense",1
+"obstruct fire equipment","Resisting or Fleeing the Police",2
+"obtain control substance by fraud","Forgery or Fraud",1
+"offer agree secure for lewd act","Sexual Offense",1
+"offer agree secure/lewd act","Sexual Offense",1
+"offn against intellectual prop","Other Offense",1
+"open carrying of weapon","Weapons Offense",2
+"oper motorcycle w/o valid dl","Driving License Offense",1
+"operating w/o valid license","Driving License Offense",38
+"opert with susp dl 2nd offens","Driving License Offense",8
+"opert with susp dl 2nd offense","Driving License Offense",1
+"petit theft","Petty Theft",33
+"petit theft $100- $300","Petty Theft",12
+"pos cannabis for consideration","Possession of Cannabis",1
+"pos cannabis w/intent sel/del","Drug Dealing",79
+"pos methylenedioxymethcath w/i/d/s","Possession of Other Drugs",1
+"poss 3,4 mdma (ecstasy)","Possession of Other Drugs",7
+"poss alprazolam w/int sell/del","Drug Dealing",1
+"poss anti-shoplifting device","Other Offense",3
+"poss cntrft contr sub w/intent","Drug Dealing",2
+"poss cocaine/intent to del/sel","Possession of Cocaine",15
+"poss contr subst w/o prescript","Possession of Other Drugs",15
+"poss drugs w/o a prescription","Possession of Other Drugs",2
+"poss f/arm delinq","Weapons Offense",4
+"poss firearm w/altered id#","Weapons Offense",1
+"poss meth/diox/meth/amp (mdma)","Possession of Other Drugs",2
+"poss of cocaine w/i/d/s 1000ft park","Possession of Cocaine",6
+"poss of controlled substance","Possession of Other Drugs",8
+"poss of firearm by convic felo","Weapons Offense",2
+"poss of methylethcathinone","Other Offense",3
+"poss of rx without rx","Other Offense",2
+"poss of vessel w/altered id no","Other Offense",1
+"poss oxycodone w/int/sell/del","Drug Dealing",1
+"poss pyrrolidinovalerophenone","Possession of Other Drugs",1
+"poss similitude of drivers lic","Driving License Offense",3
+"poss tetrahydrocannabinols","Possession of Cannabis",3
+"poss trifluoromethylphenylpipe","Other Offense",1
+"poss unlaw issue driver licenc","Other Offense",6
+"poss unlaw issue id","Other Offense",1
+"poss wep conv felon","Weapons Offense",6
+"poss/pur/sell/deliver cocaine","Drug Dealing",1
+"poss/sell/del cocaine 1000ft sch","Drug Dealing",2
+"poss/sell/deliver clonazepam","Drug Dealing",1
+"poss3,4 methylenedioxymethcath","Possession of Other Drugs",72
+"posses/disply susp/revk/frd dl","Driving License Offense",3
+"possess cannabis 1000ftsch","Possession of Cannabis",1
+"possess cannabis/20 grams or less","Possession of Cannabis",91
+"possess controlled substance","Possession of Other Drugs",1
+"possess drug paraphernalia","Possession of Other Drugs",8
+"possess tobacco product under 18","Other Offense",1
+"possess w/i/utter forged bills","Forgery or Fraud",1
+"possess weapon on school prop","Weapons Offense",1
+"possess/use weapon 1 deg felon","Weapons Offense",1
+"possession burglary tools","Burglary",28
+"possession child pornography","Other Offense",2
+"possession firearm school prop","Weapons Offense",1
+"possession of 3,4methylenediox","Other Offense",1
+"possession of alcohol under 21","Other Offense",1
+"possession of alprazolam","Possession of Other Drugs",42
+"possession of amphetamine","Possession of Other Drugs",6
+"possession of anabolic steroid","Driving License Offense",1
+"possession of benzylpiperazine","Other Offense",2
+"possession of buprenorphine","Other Offense",1
+"possession of cannabis","Possession of Cannabis",71
+"possession of carisoprodol","Other Offense",2
+"possession of clonazepam","Other Offense",1
+"possession of cocaine","Possession of Cocaine",377
+"possession of codeine","Other Offense",3
+"possession of diazepam","Other Offense",1
+"possession of fentanyl","Other Offense",1
+"possession of heroin","Possession of Other Drugs",17
+"possession of hydrocodone","Possession of Other Drugs",8
+"possession of hydromorphone","Possession of Other Drugs",13
+"possession of lorazepam","Other Offense",1
+"possession of lsd","Other Offense",2
+"possession of methamphetamine","Possession of Other Drugs",19
+"possession of morphine","Possession of Other Drugs",4
+"possession of oxycodone","Possession of Other Drugs",23
+"possession of paraphernalia","Other Offense",1
+"possession of phentermine","Other Offense",1
+"present proof of invalid insur","Other Offense",1
+"prostitution","Other Offense",1
+"prostitution/lewd act assignation","Sexual Offense",9
+"prostitution/lewdness/assign","Sexual Offense",2
+"prowling/loitering","Other Offense",12
+"purchase cannabis","Possession of Cannabis",6
+"purchase of cocaine","Possession of Cocaine",1
+"purchase/p/w/int cannabis","Possession of Cannabis",1
+"purchasing of alprazolam","Possession of Other Drugs",1
+"reckless driving","Other Traffic Offense",7
+"refuse submit blood/breath test","Other Offense",1
+"refuse to supply dna sample","Other Offense",1
+"resist officer w/violence","Resisting or Fleeing the Police",52
+"resist/obstruct w/o violence","Resisting or Fleeing the Police",40
+"restraining order dating viol","Other Offense",1
+"retail theft $300 1st offense","Other Offense",2
+"retail theft $300 2nd offense","Other Offense",1
+"ride tri-rail without paying","Other Offense",3
+"robbery / no weapon","Robbery",21
+"robbery / weapon","Robbery",6
+"robbery sudd snatch no weapon","Robbery",13
+"robbery w/deadly weapon","Robbery",1
+"robbery w/firearm","Robbery",7
+"sale/del cannabis at/near scho","Drug Dealing",3
+"sale/del counterfeit cont subs","Drug Dealing",1
+"sel/pur/mfr/del control substa","Other Offense",1
+"sell cannabis","Drug Dealing",1
+"sell conterfeit cont substance","Drug Dealing",1
+"sell or offer for sale counterfeit goods","Drug Dealing",3
+"sex batt faml/cust vict 12-17y","Sexual Offense",1
+"sex battery deft 18+/vict 11-","Sexual Offense",1
+"sex offender fail comply w/law","Sexual Offense",2
+"sexual battery / vict 12 yrs +","Sexual Offense",3
+"sexual performance by a child","Sexual Offense",1
+"shoot in occupied dwell","Other Offense",1
+"shoot into vehicle","Other Offense",3
+"simulation of legal process","Other Offense",1
+"solic to commit battery","Driving License Offense",2
+"solicit deliver cocaine","Drug Dealing",4
+"solicit purchase cocaine","Possession of Cocaine",1
+"solicit to deliver cocaine","Drug Dealing",1
+"solicitation on felony 3 deg","Other Offense",4
+"soliciting for prostitution","Other Offense",2
+"stalking","Other Offense",1
+"stalking (aggravated)","Other Offense",7
+"strong armed robbery","Robbery",2
+"structuring transactions","Other Offense",1
+"susp drivers lic 1st offense","Driving License Offense",57
+"tamper with victim","Tampering with Evidence or Witnesses",2
+"tamper with witness","Tampering with Evidence or Witnesses",3
+"tamper with witness/victim/ci","Tampering with Evidence or Witnesses",18
+"tampering with a victim","Tampering with Evidence or Witnesses",1
+"tampering with physical evidence","Tampering with Evidence or Witnesses",40
+"theft","Other Offense",1
+"theft/to deprive","Other Offense",1
+"threat public servant","Driving License Offense",1
+"throw deadly missile into veh","Other Offense",3
+"throw in occupied dwell","Other Offense",1
+"throw missile into pub/priv dw","Other Offense",1
+"traff in cocaine <400g>150 kil","Possession of Cocaine",1
+"traffic counterfeit cred cards","Forgery or Fraud",1
+"traffick amphetamine 28g><200g","Drug Dealing",2
+"traffick hydrocodone 4g><14g","Drug Dealing",1
+"traffick oxycodone 4g><14g","Drug Dealing",2
+"trespass on school grounds","Other Offense",1
+"trespass other struct/conve","Other Offense",1
+"trespass property w/dang weap","Other Offense",1
+"trespass struct/convey occupy","Other Offense",1
+"trespass struct/conveyance","Other Offense",1
+"trespass structure w/dang weap","Other Offense",1
+"trespass structure/conveyance","Other Offense",2
+"trespassing/construction site","Other Offense",3
+"tresspass in structure or conveyance","Other Offense",2
+"tresspass struct/conveyance","Other Offense",5
+"unauth c/p/s sounds>1000/audio","Other Offense",1
+"unauth poss id card or dl","Driving License Offense",8
+"unemployment compensatn fraud","Forgery or Fraud",2
+"unl/disturb education/instui","Other Offense",1
+"unlaw lictag/sticker attach","Driving License Offense",9
+"unlaw use false name/identity","Forgery or Fraud",7
+"unlawful conveyance of fuel","Other Offense",1
+"unlawful use of police badges","Other Offense",1
+"unlicensed telemarketing","Driving License Offense",2
+"use computer for child exploit","Other Offense",1
+"use of 2 way device to fac fel","Other Offense",1
+"use of anti-shoplifting device","Other Offense",3
+"use scanning device to defraud","Forgery or Fraud",2
+"uttering a forged instrument","Forgery or Fraud",44
+"uttering forged bills","Forgery or Fraud",5
+"uttering forged credit card","Forgery or Fraud",2
+"uttering worthless check +$150","Forgery or Fraud",1
+"video voyeur-<24y on child >16","Sexual Offense",1
+"viol injunct domestic violence","Domestic Violence",41
+"viol injunction protect dom vi","Domestic Violence",5
+"viol pretrial release dom viol","Domestic Violence",10
+"viol prot injunc repeat viol","Domestic Violence",18
+"violation license restrictions","Driving License Offense",2
+"voyeurism","Sexual Offense",1

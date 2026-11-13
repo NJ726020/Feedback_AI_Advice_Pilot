@@ -1,7 +1,7 @@
 # =============================================================================
 # 05_task_materials.R  —  Task screens for each trial as PNG images
 # -----------------------------------------------------------------------------
-# Builds, for each of the 32 trials, the materials in the style of
+# Builds, for each trial (40), the materials in the style of
 # Wang & Yin (2021, Fig. 1a):
 #   profile.png           "Defendant Profile:" table with the seven features
 #   model_prediction.png  Yellow box with the model's prediction
@@ -18,7 +18,7 @@
 # so the survey can show the right feedback file.
 #
 # Input:  data/trials.rds
-# Output: stimuli/T01/ ... stimuli/T32/, data/feedback_lookup.csv
+# Output: stimuli/T01/ ... stimuli/T40/, data/feedback_lookup.csv
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -74,7 +74,7 @@ draw_cross <- function(x, y, s = 0.13) {
 
 # --- 1. Defendant profile --------------------------------------------------------------
 # 8 columns: header/value pairs. Row 2: charge name spans three columns.
-col_w <- c(0.95, 0.95, 1.0, 0.75, 0.95, 1.05, 1.1, 0.55)
+col_w <- c(0.95, 0.95, 1.0, 0.75, 0.95, 1.2, 1.1, 0.55)
 row_h <- c(0.6, 0.75)
 
 draw_profile <- function(r) {
@@ -103,7 +103,7 @@ draw_profile <- function(r) {
   cell(5, 5, 1, "3. Age:", TRUE);                  cell(6, 6, 1, r$age, FALSE)
   cell(7, 7, 1, "4. Prior\nCount:", TRUE);         cell(8, 8, 1, r$prior_count, FALSE)
   # Row 2
-  cell(1, 1, 2, "5.\nCharge\nName:", TRUE);        cell(2, 4, 2, r$charge_label, FALSE)
+  cell(1, 1, 2, "5.\nCharge\nName:", TRUE);        cell(2, 4, 2, paste(strwrap(r$charge_label, 30), collapse = "\n"), FALSE)
   cell(5, 5, 2, "6. Charge\nDegree:", TRUE);       cell(6, 6, 2, as.character(r$charge_degree), FALSE)
   cell(7, 7, 2, "7. Days in\nCustody:", TRUE);     cell(8, 8, 2, r$days_in_custody, FALSE)
   c(W, H)
