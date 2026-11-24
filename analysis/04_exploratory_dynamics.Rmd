@@ -1,0 +1,719 @@
+---
+title: "Exploratory analysis II: reliance dynamics, trust updating and discrimination"
+subtitle: "AI Feedback Pilot · not preregistered · hypothesis generating"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    code_folding: hide
+    self_contained: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 7.5, fig.height = 4.2, dpi = 150, fig.align = "center")
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lme4)
+library(knitr)
+```
+
+```{r data, include = FALSE}
+# ---- Load the data (as in 03_exploratory_analysis.Rmd) ------------------------
+library(readr)
+library(here)
+here::i_am("analysis/04_exploratory_dynamics.Rmd")
+ap <- function(...) here("analysis", ...)
+source(ap("helpers.R"))
+set.seed(2627)
+
+if (!file.exists(ap("data", "processed", "participants.csv")))
+  stop("Run 01_import_clean.R first.")
+prep <- function(d) d %>% mutate(condition = factor(condition, levels = cond_levels),
+                                 cond = factor(cond_labels[as.character(condition)],
+                                               levels = cond_labels))
+parts  <- read_csv(ap("data", "processed", "participants.csv"), show_col_types = FALSE) %>%
+  filter(included) %>% prep()
+trials <- read_csv(ap("data", "processed", "trials_long.csv"), show_col_types = FALSE) %>%
+  filter(included) %>% prep() %>%
+  mutate(pos_c = position - 4.5,
+         ai_status = factor(ifelse(ai_correct, "AI correct", "AI wrong"),
+                            levels = c("AI correct", "AI wrong")))
+
+# ---- Optional columns ---------------------------------------------------------
+# Some sections need columns that did not appear in the earlier reports.
+# Enter the column names in `trials`, or leave NA to skip those sections.
+col_ai_pred      <- NA            # AI prediction, 1 = will reoffend
+col_initial_pred <- NA            # participant's initial prediction, 1 = will reoffend
+col_final_pred   <- NA            # participant's final prediction, 1 = will reoffend
+col_outcome      <- NA            # true outcome, 1 = reoffended within two years
+case_features    <- character(0)  # case features shown to participants, e.g. c("age", "priors_count")
+```
+
+```{r helpers, include = FALSE}
+has_col <- function(x) !is.na(x) && x %in% names(trials)
+has_preds    <- all(vapply(list(col_ai_pred, col_initial_pred, col_final_pred, col_outcome), has_col, logical(1)))
+has_features <- length(case_features) > 0 && all(case_features %in% names(trials))
+has_tfb      <- "time_feedback" %in% names(trials) && any(!is.na(trials$time_feedback))
+has_time     <- "case_time" %in% names(trials) && any(!is.na(trials$case_time))
+has_course   <- "course" %in% names(parts)
+
+# Formatting
+fmt  <- function(x, d = 2) ifelse(is.na(x), "–", formatC(x, format = "f", digits = d))
+fmtp <- function(p) ifelse(is.na(p), "–",
+                           ifelse(p < .001, "< .001", sub("^0", "", formatC(p, format = "f", digits = 3))))
+
+# Participant-level mean with t-based 95% CI
+x_mci <- function(x) {
+  x <- x[!is.na(x)]; n <- length(x); m <- mean(x)
+  se <- if (n > 1) sd(x) / sqrt(n) else NA_real_
+  q  <- if (n > 1) qt(.975, n - 1) else NA_real_
+  data.frame(mean = m, lo = m - q * se, hi = m + q * se, n = n)
+}
+
+# Models
+x_glmer <- function(formula, data) {
+  tryCatch(glmer(formula, data = data, family = binomial,
+                 control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))),
+           error = function(e) { message("Model failed: ", conditionMessage(e)); NULL })
+}
+x_lmer <- function(formula, data) {
+  tryCatch(lmer(formula, data = data),
+           error = function(e) { message("Model failed: ", conditionMessage(e)); NULL })
+}
+
+# Coefficient table (Wald z and normal-approximation p for all model types)
+x_coefs <- function(fit, exp = TRUE) {
+  if (is.null(fit)) return(NULL)
+  co <- summary(fit)$coefficients
+  est <- co[, 1]; se <- co[, 2]; z <- est / se
+  f <- if (exp) base::exp else identity
+  data.frame(term = rownames(co), est = f(est), lo = f(est - 1.96 * se), hi = f(est + 1.96 * se),
+             z = z, p = 2 * pnorm(-abs(z)), row.names = NULL)
+}
+x_table <- function(fit, labels = NULL, exp = TRUE, caption = NULL) {
+  t <- x_coefs(fit, exp)
+  if (is.null(t)) return(kable(data.frame(Note = "Model did not converge."), caption = caption))
+  lab <- if (is.null(labels)) t$term else ifelse(t$term %in% names(labels), labels[t$term], t$term)
+  kable(data.frame(Term = lab, Estimate = fmt(t$est), `95% CI` = paste0("[", fmt(t$lo), ", ", fmt(t$hi), "]"),
+                   z = fmt(t$z), p = fmtp(t$p), check.names = FALSE),
+        col.names = c("Term", if (exp) "Odds ratio" else "Estimate", "95% CI", "z", "p"),
+        caption = caption)
+}
+
+# Collect the key test of each section for the overview at the end
+key_env <- new.env(); key_env$rows <- list()
+add_key <- function(section, label, fit, term, exp = TRUE, scale = if (exp) "OR" else "b") {
+  t <- x_coefs(fit, exp)
+  r <- if (is.null(t) || !term %in% t$term) data.frame(est = NA, lo = NA, hi = NA, p = NA) else t[t$term == term, ]
+  key_env$rows[[length(key_env$rows) + 1]] <- data.frame(
+    Section = section, Test = label, Scale = scale,
+    est = r$est, lo = r$lo, hi = r$hi, p = r$p)
+}
+
+# Plot style: reuse the pilot theme if loaded
+cond_cols <- c("No feedback" = "#cb4b16", "Feedback" = "#268bd2")
+if (!exists("theme_pilot"))
+  theme_pilot <- function() theme_minimal(base_size = 11) +
+    theme(legend.position = "top", plot.title.position = "plot", panel.grid.minor = element_blank())
+if (!exists("scale_colour_cond"))
+  scale_colour_cond <- function(...) scale_colour_manual(values = cond_cols, ...)
+
+# Mean +/- CI per condition and x, computed over participant means
+plot_cells <- function(d, x, y = "follow", xlab = NULL, ylab = "Final prediction agrees with AI",
+                       title = NULL, subtitle = NULL, pct = TRUE) {
+  s <- d %>%
+    group_by(participant, cond, xx = .data[[x]]) %>%
+    summarise(v = mean(.data[[y]], na.rm = TRUE), .groups = "drop") %>%
+    group_by(cond, xx) %>% reframe(x_mci(v))
+  pd <- position_dodge(width = 0.3)
+  ggplot(s, aes(xx, mean, colour = cond, group = cond)) +
+    geom_line(position = pd, alpha = 0.5) +
+    geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.1, position = pd) +
+    geom_point(aes(size = n), position = pd) +
+    scale_size_area(max_size = 3.5, guide = "none") +
+    scale_colour_cond() +
+    { if (pct) scale_y_continuous(labels = scales::percent) } +
+    labs(x = xlab, y = ylab, colour = NULL, title = title, subtitle = subtitle) +
+    theme_pilot()
+}
+```
+
+```{r derive, include = FALSE}
+tr0 <- trials
+if (!"time_feedback" %in% names(tr0)) tr0$time_feedback <- NA_real_
+if (!"case_time"     %in% names(tr0)) tr0$case_time     <- NA_real_
+
+type_labels <- c("Correct adherence"     = "Followed AI, AI right",
+                 "Detrimental adherence" = "Followed AI, AI wrong",
+                 "Corrective override"   = "Overrode AI, AI wrong",
+                 "Detrimental override"  = "Overrode AI, AI right")
+
+tr <- tr0 %>%
+  mutate(fb          = as.integer(condition == "feedback"),
+         cond        = factor(ifelse(fb == 1, "Feedback", "No feedback"), levels = c("No feedback", "Feedback")),
+         ai_ok       = as.integer(as.logical(ai_correct)),
+         ai_wrong    = 1L - ai_ok,
+         follow      = as.integer(agree_final),
+         follow_init = as.integer(agree_initial),
+         init_ok     = as.integer(initial_correct),
+         final_ok    = as.integer(final_correct),
+         rel_type    = case_when(follow == 1 & ai_ok == 1 ~ "Correct adherence",
+                                 follow == 1 & ai_ok == 0 ~ "Detrimental adherence",
+                                 follow == 0 & ai_ok == 0 ~ "Corrective override",
+                                 TRUE                     ~ "Detrimental override"),
+         pos_c       = position - 4.5) %>%
+  arrange(participant, position) %>%
+  group_by(participant) %>%
+  mutate(errors_before   = cumsum(ai_wrong) - ai_wrong,
+         prev_ai_wrong   = lag(ai_wrong),
+         prev_init_wrong = lag(1L - init_ok),
+         prev_type       = factor(type_labels[lag(rel_type)], levels = type_labels),
+         prev_time_fb    = lag(time_feedback),
+         first_err       = if (any(ai_wrong == 1)) min(position[ai_wrong == 1]) else NA_real_,
+         rel_pos         = position - first_err) %>%
+  ungroup()
+
+d_lag <- tr %>% filter(position > 1)
+
+pp <- tr %>%
+  group_by(participant, fb, cond) %>%
+  summarise(n_err        = sum(ai_wrong),
+            err_early    = sum(ai_wrong[position <= 5]),
+            err_late     = sum(ai_wrong[position >= 6]),
+            first_wrong  = ai_wrong[position == 1][1],
+            adherence    = mean(follow),
+            adh_first    = mean(follow[position <= 4]),
+            adh_second   = mean(follow[position >= 5]),
+            err_first    = sum(ai_wrong[position <= 4]),
+            never_change = as.integer(all(follow == follow_init)),
+            final_acc    = mean(final_ok),
+            init_acc     = mean(init_ok),
+            .groups = "drop")
+
+items <- c(trust = "I trust the AI model's predictions.",
+           decision_help = "The AI model helped me make correct decisions.",
+           learn_AI = "I learned when to rely on the AI model.",
+           learn_human = "I got a better sense of my own accuracy.",
+           understand_AI = "I understand how the AI model makes predictions.",
+           implement = "I would support using such a model for judges.",
+           bias = "The AI model treated all people fairly.")
+items <- items[names(items) %in% names(parts)]
+pp <- pp %>% left_join(parts %>% select(participant, any_of(c(names(items), "course"))), by = "participant")
+
+stopifnot(nrow(tr) == nrow(trials))
+if ("ai_errors_before" %in% names(trials) && !isTRUE(all.equal(sort(tr$errors_before), sort(as.numeric(trials$ai_errors_before)))))
+  warning("errors_before differs from ai_errors_before in the data: check the case order variable.")
+```
+
+**About this report.** Every analysis here is exploratory and not preregistered. p-values are uncorrected unless stated otherwise. The overview at the end collects the key test of each section, with a Holm correction across them. The sample is the preregistered analysis sample (N = `r nrow(pp)`; `r nrow(tr)` decisions). Each section stands alone and can be deleted.
+
+**The logic used throughout.** Participants without feedback never learn whether the AI was right, so for them an AI error on an earlier case is invisible. That makes the no-feedback condition a **placebo**: any change after an AI error in that group reflects case order, case mix or chance, not learning. In the models, the effect of *seeing* an AI error is therefore the **interaction** of feedback with the earlier AI error, not the AI-error term itself.
+
+**What this report cannot measure.** Trust was measured only once, at the end, so how much someone *feels* they can rely on the AI after each case cannot be observed directly. Sections 1 and 5 use behaviour (following the AI) as a stand-in. Section 6 lists the measures that would capture it directly in the main study.
+
+# 1. Reliance after each AI error
+
+## 1.1 After an AI error on the previous case
+
+Does seeing that the AI was wrong on the last case reduce following it on the next one?
+
+```{r lag-plot}
+plot_cells(d_lag %>% mutate(prev = factor(ifelse(prev_ai_wrong == 1, "AI wrong", "AI right"),
+                                           levels = c("AI right", "AI wrong"))),
+           "prev", xlab = "AI on the previous case",
+           title = "Following the AI after it was right or wrong on the previous case",
+           subtitle = "Without feedback the previous AI error is invisible (placebo) · mean of participant means, 95% CI")
+```
+
+```{r lag-model}
+m_lag <- x_glmer(follow ~ fb * prev_ai_wrong + ai_wrong + pos_c + (1 | participant) + (1 | trial_id), d_lag)
+x_table(m_lag, c(`(Intercept)` = "Intercept (no feedback, AI right on previous case)",
+                 fb = "Feedback (AI right on previous case)",
+                 prev_ai_wrong = "AI wrong on previous case (placebo: no feedback)",
+                 ai_wrong = "AI wrong on this case",
+                 pos_c = "Case position",
+                 `fb:prev_ai_wrong` = "Feedback × AI wrong on previous case"),
+        caption = "Following the AI on cases 2–8. Key term: the interaction (OR < 1 = seeing an error lowers following on the next case).")
+add_key("1.1", "Seeing an AI error on the previous case", m_lag, "fb:prev_ai_wrong")
+```
+
+## 1.2 Accumulated AI errors
+
+Does following the AI decline with every additional error seen so far?
+
+```{r cum-plot}
+plot_cells(tr %>% mutate(eb = factor(pmin(errors_before, 3), levels = 0:3, labels = c("0", "1", "2", "3+"))),
+           "eb", xlab = "AI errors on the cases before this one",
+           title = "Following the AI by number of earlier AI errors",
+           subtitle = "Placebo without feedback · mean of participant means, 95% CI")
+```
+
+```{r cum-model}
+m_cum <- x_glmer(follow ~ fb * errors_before + ai_wrong + pos_c + (1 | participant) + (1 | trial_id), tr)
+x_table(m_cum, c(`(Intercept)` = "Intercept (no feedback, no earlier errors)",
+                 fb = "Feedback (no earlier errors)",
+                 errors_before = "Per earlier AI error (placebo: no feedback)",
+                 ai_wrong = "AI wrong on this case",
+                 pos_c = "Case position",
+                 `fb:errors_before` = "Feedback × per earlier AI error"),
+        caption = "Following the AI by the number of earlier AI errors. With position in the model, an earlier error is compared with an earlier correct AI case.")
+add_key("1.2", "Per accumulated AI error seen", m_cum, "fb:errors_before")
+```
+
+## 1.3 Before and after the first AI error
+
+Is there a break in reliance at the first AI error a participant sees?
+
+```{r event-plot}
+ev <- tr %>% filter(!is.na(rel_pos), rel_pos >= -3, rel_pos <= 3)
+plot_cells(ev, "rel_pos", xlab = "Cases relative to the first AI error (0 = the error case)",
+           title = "Following the AI around the first AI error",
+           subtitle = "Different participants contribute to different points (point size = n) · placebo without feedback") +
+  geom_vline(xintercept = 0.5, linetype = "dashed", colour = "grey60") +
+  scale_x_continuous(breaks = -3:3)
+```
+
+```{r event-model}
+ev2 <- ev %>% filter(rel_pos != 0) %>% mutate(after = as.integer(rel_pos > 0))
+m_ev <- x_glmer(follow ~ fb * after + ai_wrong + pos_c + (1 | participant) + (1 | trial_id), ev2)
+x_table(m_ev, c(`(Intercept)` = "Intercept (no feedback, before first error)",
+                fb = "Feedback (before first error)",
+                after = "After the first error (placebo: no feedback)",
+                ai_wrong = "AI wrong on this case", pos_c = "Case position",
+                `fb:after` = "Feedback × after the first error"),
+        caption = "Up to three cases before vs. after the first AI error (the error case itself excluded).")
+add_key("1.3", "After vs. before the first AI error", m_ev, "fb:after")
+```
+
+## 1.4 Burned by the AI vs. burned by oneself
+
+Feedback tells participants two things: whether the AI was right and whether their own final answer was right. Being burned by the AI (followed it, it was wrong) may lower reliance more than being burned by one's own override (overrode it, it was right) raises it. Such an asymmetry is a typical sign of algorithm aversion.
+
+```{r type-plot, fig.width = 8.5}
+plot_cells(d_lag %>% filter(!is.na(prev_type)), "prev_type", xlab = "What happened on the previous case",
+           title = "Following the AI by what happened on the previous case",
+           subtitle = "Without feedback the outcome was invisible (placebo; includes persistence of one's own strategy)") +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
+```
+
+```{r type-model}
+m_type <- x_glmer(follow ~ fb * prev_type + ai_wrong + pos_c + (1 | participant) + (1 | trial_id),
+                  d_lag %>% filter(!is.na(prev_type)))
+lab_type <- c(`(Intercept)` = "Intercept (no feedback, previous: followed AI, AI right)",
+              fb = "Feedback (previous: followed AI, AI right)",
+              ai_wrong = "AI wrong on this case", pos_c = "Case position")
+for (k in type_labels[-1]) {
+  lab_type[paste0("prev_type", k)]    <- paste0("Previous: ", tolower(k), " (placebo)")
+  lab_type[paste0("fb:prev_type", k)] <- paste0("Feedback × previous: ", tolower(k))
+}
+x_table(m_type, lab_type,
+        caption = "Reference: previous case 'followed AI, AI right'. The interactions show what *seeing* each outcome does, beyond the persistence also present without feedback.")
+add_key("1.4", "Burned by the AI (followed, AI wrong)", m_type, "fb:prev_typeFollowed AI, AI wrong")
+add_key("1.4", "Burned by own override (overrode, AI right)", m_type, "fb:prev_typeOverrode AI, AI right")
+```
+
+**Reading.** An asymmetry would show as a clearly negative interaction for "followed AI, AI wrong" alongside a small or absent positive interaction for "overrode AI, AI right". With 8 cases per person, some cells are small, so expect wide intervals.
+
+## 1.5 Learning about oneself: initial errors
+
+Feedback also shows participants when their own *initial* prediction was wrong. Does that push them toward the AI on the next case?
+
+```{r self-model}
+m_self <- x_glmer(follow ~ fb * prev_init_wrong + ai_wrong + pos_c + (1 | participant) + (1 | trial_id), d_lag)
+x_table(m_self, c(`(Intercept)` = "Intercept (no feedback, own initial prediction right)",
+                  fb = "Feedback (own initial prediction right)",
+                  prev_init_wrong = "Own initial prediction wrong on previous case (placebo)",
+                  ai_wrong = "AI wrong on this case", pos_c = "Case position",
+                  `fb:prev_init_wrong` = "Feedback × own initial prediction wrong"),
+        caption = "Following the AI after one's own initial prediction was wrong on the previous case.")
+add_key("1.5", "Seeing one's own initial error", m_self, "fb:prev_init_wrong")
+```
+
+## 1.6 Does it matter how long the feedback was looked at?
+
+Feedback condition only. If feedback works by being read, the reaction to an AI error should be stronger after longer time on the feedback page. Time is not randomised, so this is correlational.
+
+```{r tfb-model, eval = has_tfb}
+d_tfb <- d_lag %>% filter(fb == 1, !is.na(prev_time_fb)) %>%
+  mutate(log_tfb = as.numeric(scale(log(prev_time_fb + 0.5))))
+kable(d_tfb %>% summarise(`Median s` = fmt(median(prev_time_fb), 1),
+                          `Share < 1 s` = scales::percent(mean(prev_time_fb < 1), 0.1),
+                          `Share > 5 s` = scales::percent(mean(prev_time_fb > 5), 0.1)),
+      caption = "Time on the feedback page (feedback condition, cases 1–7).")
+m_tfb <- x_glmer(follow ~ prev_ai_wrong * log_tfb + ai_wrong + pos_c + (1 | participant) + (1 | trial_id), d_tfb)
+x_table(m_tfb, c(`(Intercept)` = "Intercept", prev_ai_wrong = "AI wrong on previous case (at average time)",
+                 log_tfb = "Time on previous feedback page (log, SD)", ai_wrong = "AI wrong on this case",
+                 pos_c = "Case position", `prev_ai_wrong:log_tfb` = "AI wrong on previous case × time"),
+        caption = "Feedback condition only. Key term: the interaction (OR < 1 = stronger reaction after longer reading).")
+add_key("1.6", "Reaction to AI error × time on feedback page", m_tfb, "prev_ai_wrong:log_tfb")
+```
+
+```{r tfb-skip, eval = !has_tfb, echo = FALSE, results = "asis"}
+cat("*Skipped: no `time_feedback` column in `trials`.*")
+```
+
+## 1.7 Do people slow down after an AI error?
+
+If an AI error is noticed, people may deliberate longer on the next case (post-error slowing).
+
+```{r time-model, eval = has_time}
+m_time <- x_lmer(log(case_time) ~ fb * prev_ai_wrong + ai_wrong + pos_c + (1 | participant) + (1 | trial_id),
+                 d_lag %>% filter(case_time > 0))
+x_table(m_time, c(`(Intercept)` = "Intercept", fb = "Feedback (AI right on previous case)",
+                  prev_ai_wrong = "AI wrong on previous case (placebo)", ai_wrong = "AI wrong on this case",
+                  pos_c = "Case position", `fb:prev_ai_wrong` = "Feedback × AI wrong on previous case"),
+        exp = TRUE,
+        caption = "Time per case (log scale). Estimates are time ratios: 1.10 = 10% longer.")
+add_key("1.7", "Slowing after a seen AI error", m_time, "fb:prev_ai_wrong", scale = "time ratio")
+```
+
+```{r time-skip, eval = !has_time, echo = FALSE, results = "asis"}
+cat("*Skipped: no `case_time` column in `trials`.*")
+```
+
+# 2. Trust at the end
+
+## 2.1 Does trust follow the number of AI errors, and only with feedback?
+
+```{r trust-plot}
+ggplot(pp, aes(n_err, trust, colour = cond)) +
+  geom_jitter(width = 0.15, height = 0.15, alpha = 0.45, size = 1.5) +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, linewidth = 0.8, alpha = 0.12) +
+  scale_colour_cond() +
+  scale_y_continuous(limits = c(1, 7), breaks = 1:7) +
+  labs(x = "AI errors among the participant's 8 cases", y = "Trust (1–7)", colour = NULL,
+       title = "Trust by number of AI errors", subtitle = "Linear fit with 95% CI") +
+  theme_pilot()
+```
+
+```{r trust-model}
+m_trust <- lm(trust ~ fb * n_err, data = pp)
+x_table(m_trust, c(`(Intercept)` = "Intercept (no feedback, 0 errors)", fb = "Feedback (0 errors)",
+                   n_err = "Per AI error (no feedback)", `fb:n_err` = "Feedback × per AI error"),
+        exp = FALSE, caption = "Linear model of end-of-study trust (1–7). Estimates in scale points.")
+add_key("2.1", "Trust per AI error: feedback vs. none (scale points)", m_trust, "fb:n_err", exp = FALSE)
+
+if (requireNamespace("ordinal", quietly = TRUE)) {
+  m_trust_o <- ordinal::clm(factor(trust, ordered = TRUE) ~ fb * n_err, data = pp)
+  x_table(m_trust_o, c(fb = "Feedback (0 errors)", n_err = "Per AI error (no feedback)",
+                       `fb:n_err` = "Feedback × per AI error"),
+          caption = "Robustness: ordinal (cumulative logit) model. Odds ratios; thresholds shown as intercepts.")
+}
+```
+
+## 2.2 All questionnaire items
+
+```{r items}
+item_rows <- lapply(names(items), function(it) {
+  d <- pp %>% filter(!is.na(.data[[it]]))
+  m0 <- lm(reformulate(c("fb", "n_err", "fb:n_err"), it), data = d)
+  m1 <- lm(reformulate(c("fb0", "n_err", "fb0:n_err"), it), data = d %>% mutate(fb0 = 1 - fb))
+  c0 <- summary(m0)$coefficients; c1 <- summary(m1)$coefficients
+  data.frame(Item = items[[it]],
+             `Slope, no feedback` = fmt(c0["n_err", 1]),
+             `Slope, feedback`    = fmt(c1["n_err", 1]),
+             `Difference`         = fmt(c0["fb:n_err", 1]),
+             p = fmtp(c0["fb:n_err", 4]), check.names = FALSE)
+})
+kable(bind_rows(item_rows),
+      caption = "Change in each item (scale points) per AI error among the participant's cases, by condition. p tests the difference in slopes.")
+```
+
+## 2.3 Recent errors vs. early errors
+
+Do errors on the last cases weigh more than errors on the first ones (a recency effect)? Errors are expressed per case (share of cases 1–5 vs. cases 6–8), so the two coefficients are comparable.
+
+```{r recency}
+rec <- pp %>% mutate(rate_early = err_early / 5, rate_late = err_late / 3)
+rec_rows <- lapply(levels(pp$cond), function(cc) {
+  m <- lm(trust ~ rate_early + rate_late, data = rec %>% filter(cond == cc))
+  b <- coef(m); v <- vcov(m)
+  diff <- b["rate_late"] - b["rate_early"]
+  se   <- sqrt(v["rate_late", "rate_late"] + v["rate_early", "rate_early"] - 2 * v["rate_late", "rate_early"])
+  data.frame(Condition = cc,
+             `Errors in cases 1–5` = fmt(b["rate_early"]),
+             `Errors in cases 6–8` = fmt(b["rate_late"]),
+             `Late − early` = paste0(fmt(diff), " [", fmt(diff - 1.96 * se), ", ", fmt(diff + 1.96 * se), "]"),
+             p = fmtp(2 * pnorm(-abs(diff / se))), check.names = FALSE)
+})
+kable(bind_rows(rec_rows),
+      caption = "Trust (scale points) per unit share of AI errors in the early vs. late cases. Without feedback, both should be about 0.")
+```
+
+## 2.4 First impressions
+
+Does an AI error on the very first case shape trust beyond the total number of errors?
+
+```{r first}
+m_first <- lm(trust ~ fb * first_wrong + n_err, data = pp)
+x_table(m_first, c(`(Intercept)` = "Intercept", fb = "Feedback (AI right on case 1)",
+                   first_wrong = "AI wrong on case 1 (no feedback)", n_err = "Per AI error (total)",
+                   `fb:first_wrong` = "Feedback × AI wrong on case 1"),
+        exp = FALSE, caption = "End-of-study trust (1–7) by an AI error on the first case, controlling for the total.")
+add_key("2.4", "First-case AI error on trust (scale points)", m_first, "fb:first_wrong", exp = FALSE)
+```
+
+## 2.5 Is the variation in AI errors just sampling?
+
+Each participant drew 8 of the same 40 cases. If the number of AI errors a person saw only reflects which cases they drew, it should follow a hypergeometric distribution.
+
+```{r hyper}
+cases <- tr %>% distinct(trial_id, ai_wrong)
+N_cases <- nrow(cases); K_err <- sum(cases$ai_wrong)
+obs <- pp %>% count(n_err) %>% mutate(share = n / sum(n))
+expd <- data.frame(n_err = 0:8, expected = dhyper(0:8, K_err, N_cases - K_err, 8))
+hy <- full_join(obs, expd, by = "n_err") %>% mutate(share = coalesce(share, 0)) %>% filter(expected > 0.001 | share > 0)
+ggplot(hy, aes(n_err)) +
+  geom_col(aes(y = share), fill = "grey75", width = 0.7) +
+  geom_point(aes(y = expected), colour = "black", size = 2.5) + geom_line(aes(y = expected)) +
+  scale_y_continuous(labels = scales::percent) + scale_x_continuous(breaks = 0:8) +
+  labs(x = "AI errors among the participant's 8 cases", y = "Share of participants",
+       title = "Observed (bars) vs. expected from random draws (line)",
+       subtitle = sprintf("%d of %d cases are AI errors (AI accuracy %.1f%%)", K_err, N_cases, 100 * (1 - K_err / N_cases))) +
+  theme_pilot()
+```
+
+## 2.6 How much *should* trust change? A Bayesian benchmark
+
+Whether updating on 8 cases is excessive depends on what people believed beforehand. The figure shows a rational observer's estimate of the AI's accuracy after seeing *k* errors in 8 cases. The prior is centred on the AI's true accuracy, with different strengths (measured in pseudo-cases). With a weak prior, a large change is rational; with a strong prior (e.g., if participants were told the AI's accuracy), it is not. Trust (1–7) cannot be put on this scale, so this is only a benchmark. The main study should ask for an estimate of the AI's accuracy in percent.
+
+```{r bayes}
+acc_true <- 1 - K_err / N_cases
+bay <- expand.grid(k = 0:6, strength = c(2, 10, 40)) %>%
+  mutate(a = acc_true * strength, b = (1 - acc_true) * strength,
+         post = (a + 8 - k) / (a + b + 8),
+         Prior = factor(paste0(strength, " pseudo-cases"), levels = paste0(c(2, 10, 40), " pseudo-cases")))
+ggplot(bay, aes(k, post, linetype = Prior)) +
+  geom_hline(yintercept = acc_true, colour = "grey60") +
+  geom_line() + geom_point(size = 1.8) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) + scale_x_continuous(breaks = 0:6) +
+  labs(x = "AI errors seen in 8 cases", y = "Posterior mean AI accuracy", linetype = "Prior strength",
+       title = "Rational estimate of AI accuracy after k errors", subtitle = "Grey line: actual AI accuracy") +
+  theme_pilot()
+```
+
+## 2.7 Does end trust go with behaviour?
+
+```{r trust-behav}
+m_tb <- lm(adherence ~ fb * trust, data = pp)
+x_table(m_tb, c(`(Intercept)` = "Intercept", fb = "Feedback (trust = 0)", trust = "Per trust point (no feedback)",
+                `fb:trust` = "Feedback × per trust point"),
+        exp = FALSE, caption = "Share of final predictions agreeing with the AI, by end-of-study trust.")
+kable(pp %>% group_by(Condition = cond) %>%
+        summarise(`r(trust, adherence)` = fmt(cor(trust, adherence, use = "complete.obs")),
+                  `r(trust, final accuracy)` = fmt(cor(trust, final_acc, use = "complete.obs"))),
+      caption = "Correlations at participant level.")
+```
+
+# 3. Telling right from wrong AI advice
+
+## 3.1 Signal detection: sensitivity vs. general willingness to follow
+
+For each participant, the *hit rate* is how often they followed the AI when it was right, and the *false-alarm rate* how often they followed it when it was wrong. **d′** measures discrimination (0 = none). **c** measures the general tendency: negative = follows a lot, positive = follows little. If feedback lowers reliance across the board rather than selectively, it should shift c but not d′. Rates use a log-linear correction; participants with no AI error (or no correct AI case) are excluded.
+
+```{r sdt}
+sdt <- tr %>% group_by(participant, cond, fb) %>%
+  summarise(n_c = sum(ai_ok), n_w = sum(ai_wrong),
+            h = sum(follow == 1 & ai_ok == 1), fa = sum(follow == 1 & ai_ok == 0), .groups = "drop") %>%
+  filter(n_c > 0, n_w > 0) %>%
+  mutate(H = (h + 0.5) / (n_c + 1), FA = (fa + 0.5) / (n_w + 1),
+         dprime = qnorm(H) - qnorm(FA), crit = -(qnorm(H) + qnorm(FA)) / 2)
+sdt_tab <- bind_rows(
+  lapply(c("dprime", "crit"), function(v) {
+    s <- sdt %>% group_by(cond) %>% reframe(x_mci(.data[[v]]))
+    data.frame(Measure = c(dprime = "d′ (discrimination)", crit = "c (criterion; < 0 = follows more)")[[v]],
+               `No feedback` = with(s[s$cond == "No feedback", ], paste0(fmt(mean), " [", fmt(lo), ", ", fmt(hi), "]")),
+               Feedback = with(s[s$cond == "Feedback", ], paste0(fmt(mean), " [", fmt(lo), ", ", fmt(hi), "]")),
+               `One-sample p (no feedback = 0)` = fmtp(t.test(sdt[[v]][sdt$cond == "No feedback"])$p.value),
+               `p (Wilcoxon, between)` = fmtp(wilcox.test(sdt[[v]] ~ sdt$cond, exact = FALSE)$p.value),
+               check.names = FALSE)
+  }))
+kable(sdt_tab, caption = sprintf("Signal-detection measures (n = %d participants with at least one right and one wrong AI case).", nrow(sdt)))
+
+ggplot(sdt, aes(crit, dprime, colour = cond)) +
+  geom_hline(yintercept = 0, colour = "grey70") + geom_vline(xintercept = 0, colour = "grey70") +
+  geom_jitter(width = 0.03, height = 0.03, alpha = 0.4, size = 1.5) +
+  geom_point(data = sdt %>% group_by(cond) %>% summarise(crit = mean(crit), dprime = mean(dprime)),
+             size = 5, shape = 18) +
+  scale_colour_cond() +
+  labs(x = "c (criterion): < 0 follows more, > 0 follows less", y = "d′ (discrimination)", colour = NULL,
+       title = "Discrimination vs. general tendency to follow", subtitle = "Diamonds: condition means") +
+  theme_pilot()
+```
+
+## 3.2 Is there a signal to use? Initial judgements
+
+Participants' *initial* predictions were made before they saw the AI. If they agree with the AI more often when it is right than when it is wrong, their own judgement carries information about AI errors. That signal could, in principle, be used to override well. If there is no such signal, appropriate reliance case by case is out of reach in this task.
+
+```{r signal}
+plot_cells(tr %>% mutate(ai = factor(ifelse(ai_ok == 1, "AI right", "AI wrong"), levels = c("AI right", "AI wrong"))),
+           "ai", y = "follow_init", ylab = "Initial prediction agrees with AI",
+           xlab = NULL, title = "Agreement of the initial prediction with the AI",
+           subtitle = "Made before seeing the AI · mean of participant means, 95% CI")
+m_sig <- x_glmer(follow_init ~ ai_ok + fb + pos_c + (1 | participant) + (1 | trial_id), tr)
+x_table(m_sig, c(`(Intercept)` = "Intercept (AI wrong, no feedback)", ai_ok = "AI right on this case",
+                 fb = "Feedback", pos_c = "Case position"),
+        caption = "Initial agreement with the AI. OR > 1 for 'AI right' = participants' own judgement carries signal about AI errors.")
+add_key("3.2", "Initial agreement: AI right vs. wrong (signal)", m_sig, "ai_ok")
+```
+
+## 3.3 Is the signal used? Switching after a disagreement
+
+```{r use-signal}
+d_dis <- tr %>% filter(follow_init == 0) %>% mutate(switch = as.integer(switch_to_ai))
+m_use <- x_glmer(switch ~ fb * ai_ok + pos_c + (1 | participant) + (1 | trial_id), d_dis)
+x_table(m_use, c(`(Intercept)` = "Intercept (no feedback, AI wrong)", fb = "Feedback (AI wrong)",
+                 ai_ok = "AI right (no feedback)", pos_c = "Case position",
+                 `fb:ai_ok` = "Feedback × AI right"),
+        caption = "Cases where the initial prediction disagreed with the AI: switching to the AI. OR > 1 for 'AI right' = selective switching.")
+add_key("3.3", "Selective switching (AI right vs. wrong), no feedback", m_use, "ai_ok")
+add_key("3.3", "Feedback × selective switching", m_use, "fb:ai_ok")
+```
+
+# 4. The cases: is there anything to learn about *when*?
+
+## 4.1 Case by case
+
+Each point is one of the 40 cases. If wrong-AI cases can be recognised, they should sit lower on initial agreement and/or final adherence than right-AI cases.
+
+```{r cases, fig.height = 4.8}
+cs <- tr %>% group_by(trial_id, cond) %>%
+  summarise(ai = ifelse(first(ai_ok) == 1, "AI right", "AI wrong"),
+            init_agree = mean(follow_init), adherence = mean(follow), n = n(), .groups = "drop")
+ggplot(cs, aes(init_agree, adherence, colour = ai)) +
+  geom_abline(slope = 1, intercept = 0, colour = "grey80") +
+  geom_point(aes(size = n), alpha = 0.75) +
+  scale_size_area(max_size = 3.5, guide = "none") +
+  scale_colour_manual(values = c("AI right" = "#859900", "AI wrong" = "#d33682")) +
+  scale_x_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  facet_wrap(~ cond) +
+  labs(x = "Initial prediction agrees with AI", y = "Final prediction agrees with AI", colour = NULL,
+       title = "The 40 cases", subtitle = "Above the diagonal: the AI pulled people towards its answer") +
+  theme_pilot()
+```
+
+## 4.2 Are AI errors predictable from the features shown?
+
+```{r features, eval = has_features}
+cf <- tr %>% group_by(trial_id) %>% summarise(ai_wrong = first(ai_wrong), across(all_of(case_features), first))
+kable(cf %>% group_by(`AI` = ifelse(ai_wrong == 1, "AI wrong", "AI right")) %>%
+        summarise(Cases = n(), across(all_of(case_features), ~ fmt(mean(as.numeric(.x), na.rm = TRUE)))),
+      caption = "Mean feature values of the cases where the AI was right vs. wrong (40 cases; descriptive).")
+```
+
+```{r features-skip, eval = !has_features, echo = FALSE, results = "asis"}
+cat("*Skipped: set `case_features` in the `data` chunk to the feature columns shown to participants.*")
+```
+
+## 4.3 Base rate, response bias and the 'always no' benchmark
+
+```{r preds, eval = has_preds}
+tp <- tr %>% mutate(ai_yes = as.integer(.data[[col_ai_pred]]), init_yes = as.integer(.data[[col_initial_pred]]),
+                    final_yes = as.integer(.data[[col_final_pred]]), outcome = as.integer(.data[[col_outcome]]))
+cs2 <- tp %>% distinct(trial_id, ai_yes, outcome)
+kable(data.frame(`Cases` = nrow(cs2),
+                 `Reoffended (base rate)` = scales::percent(mean(cs2$outcome), 0.1),
+                 `AI predicts 'reoffend'` = scales::percent(mean(cs2$ai_yes), 0.1),
+                 `Accuracy of 'always no'` = scales::percent(1 - mean(cs2$outcome), 0.1),
+                 `AI accuracy` = scales::percent(mean(cs2$ai_yes == cs2$outcome), 0.1), check.names = FALSE),
+      caption = "The 40 cases.")
+kable(tp %>% group_by(participant, Condition = cond) %>%
+        summarise(always_no = mean(outcome == 0), init_yes = mean(init_yes), final_yes = mean(final_yes),
+                  final_acc = mean(final_ok), .groups = "drop") %>%
+        group_by(Condition) %>%
+        summarise(`Predicted 'reoffend', initial` = scales::percent(mean(init_yes), 0.1),
+                  `Predicted 'reoffend', final` = scales::percent(mean(final_yes), 0.1),
+                  `'Always no' on own cases` = scales::percent(mean(always_no), 0.1),
+                  `Final accuracy` = scales::percent(mean(final_acc), 0.1),
+                  `Share beating 'always no'` = scales::percent(mean(final_acc > always_no), 0.1)),
+      caption = "Response bias and the trivial benchmark, by condition (participant means).")
+plot_cells(tp, "position", y = "init_yes", ylab = "Initial prediction: 'reoffend'", xlab = "Case position",
+           title = "Does feedback teach the base rate?",
+           subtitle = "Share of initial 'reoffend' predictions over the cases") +
+  scale_x_continuous(breaks = 1:8)
+```
+
+```{r preds-skip, eval = !has_preds, echo = FALSE, results = "asis"}
+cat("*Skipped: set `col_ai_pred`, `col_initial_pred`, `col_final_pred` and `col_outcome` in the `data` chunk.*")
+```
+
+# 5. Individual differences
+
+## 5.1 Strategies: always following, never changing
+
+```{r strategies}
+kable(pp %>% group_by(Condition = cond) %>%
+        summarise(N = n(),
+                  `Always followed the AI (final)` = scales::percent(mean(adherence == 1), 0.1),
+                  `Never followed the AI (final)`  = scales::percent(mean(adherence == 0), 0.1),
+                  `Never changed initial → final` = scales::percent(mean(never_change), 0.1)),
+      caption = "Simple strategies.")
+ggplot(pp, aes(adherence, colour = cond)) +
+  geom_freqpoly(binwidth = 0.125, boundary = -0.0625, linewidth = 0.8) +
+  scale_colour_cond() + scale_x_continuous(labels = scales::percent, breaks = seq(0, 1, 0.25)) +
+  labs(x = "Share of final predictions agreeing with the AI", y = "Participants", colour = NULL,
+       title = "Distribution of adherence") +
+  theme_pilot()
+```
+
+## 5.2 Change in reliance from the first to the second half
+
+A participant-level measure of updating: did reliance in cases 5–8 drop more for those who saw more AI errors in cases 1–4?
+
+```{r halves}
+m_half <- lm(I(adh_second - adh_first) ~ fb * err_first, data = pp)
+x_table(m_half, c(`(Intercept)` = "Intercept (no feedback, no errors in cases 1–4)",
+                  fb = "Feedback (no errors in cases 1–4)",
+                  err_first = "Per AI error in cases 1–4 (placebo)",
+                  `fb:err_first` = "Feedback × per AI error in cases 1–4"),
+        exp = FALSE, caption = "Change in adherence (second half minus first half, proportion).")
+add_key("5.2", "Change in adherence per early AI error (proportion)", m_half, "fb:err_first", exp = FALSE)
+plot_cells(pp %>% mutate(ef = factor(pmin(err_first, 2), levels = 0:2, labels = c("0", "1", "2+")),
+                         change = adh_second - adh_first),
+           "ef", y = "change", ylab = "Change in adherence (cases 5–8 minus 1–4)", pct = FALSE,
+           xlab = "AI errors in cases 1–4", title = "Updating of reliance between the two halves") +
+  geom_hline(yintercept = 0, colour = "grey70")
+```
+
+## 5.3 Course
+
+```{r course, eval = has_course}
+d_course <- tr %>% left_join(parts %>% select(participant, course), by = "participant") %>% filter(!is.na(course))
+m_course <- x_glmer(final_ok ~ fb * course + pos_c + (1 | participant) + (1 | trial_id), d_course)
+x_table(m_course, caption = "Final accuracy by condition and course. Key term: feedback × course.")
+```
+
+# 6. Measures to add in the main study
+
+What the pilot could not measure, but the questions above need:
+
+- **Felt reliance after each case:** e.g., "How much will you rely on the AI on the next case?" (0–100), asked after each feedback page (and at the same point without feedback). This directly measures the updating behind Section 1.
+- **Estimated AI accuracy:** "Out of 10 such cases, how many does the AI get right?" at the start and the end. This gives the Bayesian benchmark (2.6) a comparable scale.
+- **Estimated own accuracy:** the same question about oneself, to separate learning about the AI from learning about oneself (1.5).
+- **Confidence in each prediction:** this tells whether participants' own signal (3.2) is metacognitively accessible.
+- **Feedback processing check:** a minimum time on the feedback page, or a question about the last outcome.
+
+# 7. Overview of key tests
+
+The key test of each section, in one table. Holm-adjusted p-values account for the number of tests shown here only; the exploratory status remains.
+
+```{r overview}
+kr <- bind_rows(key_env$rows)
+if (nrow(kr)) {
+  kr <- kr %>% mutate(`p (Holm)` = fmtp(p.adjust(p, "holm")),
+                      Estimate = fmt(est), `95% CI` = paste0("[", fmt(lo), ", ", fmt(hi), "]"), p = fmtp(p)) %>%
+    select(Section, Test, Scale, Estimate, `95% CI`, p, `p (Holm)`)
+  kable(kr, caption = "OR = odds ratio and time ratio (1 = no effect); b = unstandardised coefficient (0 = no effect).")
+}
+```
+
+# Session info
+
+```{r session}
+sessionInfo()
+```

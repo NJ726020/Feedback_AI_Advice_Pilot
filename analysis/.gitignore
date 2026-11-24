@@ -1,0 +1,10 @@
+# Participant data stay local (consent: access by project researchers only).
+# Paths are relative to this analysis/ folder.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/
+data/private/
+reports/
+*.html
+*_cache/
+*_files/

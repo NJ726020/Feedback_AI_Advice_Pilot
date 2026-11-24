@@ -1,0 +1,29 @@
+/* Minimal Solarized (light) styling for the R Markdown reports */
+body {
+  background-color: #fdf6e3;
+  color: #586e75;
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+h1, h2, h3, h4, .title { color: #073642; font-weight: 600; }
+h1.title { font-size: 28px; margin-top: 24px; }
+h3.subtitle, h4.date { color: #93a1a1; font-weight: 400; }
+a, a:hover, a:focus { color: #268bd2; }
+code { color: #cb4b16; background-color: #eee8d5; border-radius: 3px; padding: 1px 4px; }
+pre, pre code { background-color: #eee8d5; color: #586e75; border: none; border-radius: 4px; }
+pre.r { border-left: 3px solid #93a1a1; }
+.table { width: auto; margin-bottom: 18px; font-size: 14px; }
+.table > thead > tr > th { border-bottom: 2px solid #93a1a1; color: #073642; }
+.table > tbody > tr > td { border-top: 1px solid #eee8d5; }
+caption { color: #657b83; caption-side: top; font-style: italic; }
+blockquote { border-left: 3px solid #268bd2; color: #657b83; }
+img { background-color: #fdf6e3; }
+.btn-default, .btn-default:hover { background-color: #eee8d5; color: #586e75; border-color: #93a1a1; }
+#TOC, .tocify { background-color: #fdf6e3; border: none; }
+.tocify .list-group-item { background-color: #fdf6e3; color: #657b83; border: none; }
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+  background-color: #eee8d5; color: #073642; border: none;
+}
+pre code, pre code span { background-color: transparent !important; padding: 0; }
+pre:not(.r) { background-color: #eee8d5 !important; border: none; }

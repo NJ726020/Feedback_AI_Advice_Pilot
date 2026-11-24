@@ -1,0 +1,397 @@
+---
+title: "Exploratory analysis: reliance, learning and evaluations"
+subtitle: "AI Feedback Pilot UM · not preregistered as confirmatory"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    theme: default
+    css: solarized.css
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 7, fig.height = 4, dpi = 150, dev.args = list(bg = "#fdf6e3"))
+suppressPackageStartupMessages({
+  library(dplyr); library(tidyr); library(readr); library(ggplot2); library(lme4); library(knitr); library(here)
+})
+here::i_am("analysis/03_exploratory_analysis.Rmd")
+ap <- function(...) here("analysis", ...)
+source(ap("helpers.R"))
+set.seed(2627)
+
+if (!file.exists(ap("data", "processed", "participants.csv")))
+  stop("Run 01_import_clean.R first.")
+prep <- function(d) d %>% mutate(condition = factor(condition, levels = cond_levels),
+                                 cond = factor(cond_labels[as.character(condition)],
+                                               levels = cond_labels))
+parts  <- read_csv(ap("data", "processed", "participants.csv"), show_col_types = FALSE) %>%
+  filter(included) %>% prep()
+trials <- read_csv(ap("data", "processed", "trials_long.csv"), show_col_types = FALSE) %>%
+  filter(included) %>% prep() %>%
+  mutate(pos_c = position - 4.5,
+         ai_status = factor(ifelse(ai_correct, "AI correct", "AI wrong"),
+                            levels = c("AI correct", "AI wrong")))
+comments_file <- ap("data", "private", "open_comments.csv")
+```
+
+All analyses here are **exploratory**: they describe patterns and generate hypotheses for the main study. *p*-values are uncorrected and should be read as descriptive. The sample is the preregistered analysis sample (N = `r nrow(parts)`; `r nrow(trials)` decisions).
+
+## 1. Reliance on the AI
+
+### Following the AI when it is right and when it is wrong
+
+Appropriate reliance means following the AI when it is right and overriding it when it is wrong. If feedback helps people judge when the AI can be trusted, the gap between these two cases should be larger with feedback.
+
+```{r fig-adherence, fig.height = 3.8}
+adh <- trials %>%
+  group_by(participant, cond, ai_status) %>%
+  summarise(adherence = mean(agree_final), .groups = "drop")
+# Dots on the left of each condition, grey boxplot (median, quartiles) on the right
+adh <- adh %>% mutate(x_dots = as.numeric(cond) - 0.12, x_box = as.numeric(cond) + 0.18)
+
+adh_plot <- adh %>% filter(!is.na(adherence))   # people who saw no AI error have no "AI wrong" value
+
+adh_sum <- adh_plot %>%
+  group_by(ai_status, cond) %>%
+  reframe(mean_ci(adherence)) %>%
+  mutate(x = as.numeric(cond) + 0.28)
+
+ggplot(adh_plot, aes(y = adherence, colour = cond)) +
+  geom_point(aes(x = as.numeric(cond)),
+             position = position_jitter(width = 0.10, height = 0.02, seed = 1),
+             alpha = 0.25, size = 1.4) +
+  geom_errorbar(data = adh_sum, aes(x = x, y = mean, ymin = lo, ymax = hi),
+                width = 0.06, linewidth = 0.8) +
+  geom_point(data = adh_sum, aes(x = x, y = mean),
+             shape = 21, fill = "white", size = 2.2, stroke = 1.1) +
+  facet_wrap(~ ai_status) +
+  scale_colour_cond(guide = "none") +
+  scale_x_continuous(breaks = seq_along(levels(adh$cond)), labels = levels(adh$cond),
+                     expand = expansion(add = 0.4)) +
+  scale_y_continuous(labels = scales::percent, limits = c(-0.03, 1.03)) +
+  labs(x = NULL, y = "Final prediction agrees with AI",
+       title = "Adherence to the AI by AI correctness",
+       caption = "right: mean with 95% CI") +
+  theme_pilot()
+```
+
+```{r model-adherence}
+m_adh <- safe_glmer(agree_final ~ condition * ai_correct + pos_c + (1 | participant) + (1 | trial_id), trials)
+kable(or_kable(or_table(m_adh), c(
+  `(Intercept)` = "Intercept (no feedback, AI wrong)",
+  conditionfeedback = "Feedback (when AI wrong)",
+  ai_correctTRUE = "AI correct (no feedback)",
+  pos_c = "Case position",
+  `conditionfeedback:ai_correctTRUE` = "Feedback x AI correct")),
+  caption = "Logistic mixed model of agreeing with the AI in the final prediction.")
+```
+
+
+```{r position-effect, include = FALSE}
+pos_r <- or_table(m_adh)
+pos_r <- if (is.null(pos_r)) NULL else pos_r[pos_r$term == "pos_c", ]
+pos_p <- if (is.null(pos_r)) "" else fmt_p(pos_r$p)
+pos_p <- if (grepl("<", pos_p)) paste("p", pos_p) else paste("p =", pos_p)
+```
+
+**Feedback.** Null-effect, but there seems to be a trend that feedback reduces reliance in bigger study. 
+
+**Case position.** Participants followed the AI more on later cases. Per case, the odds of agreeing with the AI rose by a factor of `r fmt_num(pos_r$OR)` (95% CI [`r fmt_num(pos_r$lo)`, `r fmt_num(pos_r$hi)`], `r pos_p`), so from the first to the eighth case the odds rose by a factor of about `r fmt_num(pos_r$OR^7)`. The model estimates this increase across both conditions, so it occurs whether or not participants were shown the AI's errors, and it does not depend on whether the AI was right.
+
+### Reliance types (Schoeffer et al., 2023) and reliance measures
+
+```{r fig-types, fig.height = 4.2}
+types <- parts %>%
+  select(cond, `Correct adherence` = share_correct_adherence,
+         `Corrective override` = share_corrective_override,
+         `Detrimental adherence` = share_detrimental_adherence,
+         `Detrimental override` = share_detrimental_override) %>%
+  pivot_longer(-cond, names_to = "type", values_to = "share") %>%
+  mutate(type = factor(type, levels = c("Correct adherence", "Corrective override",
+                                        "Detrimental adherence", "Detrimental override")))
+types_sum <- types %>% group_by(type, cond) %>% reframe(mean_ci(share))
+
+ggplot(types_sum, aes(cond, mean, colour = cond)) +
+  geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.08, linewidth = 0.6) +
+  geom_point(size = 3) +
+  facet_wrap(~ type, nrow = 1) +
+  scale_colour_cond(guide = "none") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = NULL, y = "Share of the 8 decisions",
+       title = "Reliance types by condition",
+       subtitle = "Final accuracy = Correct Adherence + Correct Override, mean with 95% CI") +
+  theme_pilot() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+```{r reliance-measures}
+rel <- parts %>%
+  select(cond, `Adherence` = adherence,
+         `RAIR` = rair, `RSR` = rsr, `Switch rate` = switch_rate) %>%
+  pivot_longer(-cond, names_to = "measure", values_to = "value")
+rel_test <- rel %>% group_by(measure) %>%
+  summarise(p = tryCatch(wilcox.test(value ~ cond, exact = FALSE)$p.value, error = function(e) NA_real_))
+rel %>% group_by(measure, cond) %>% reframe(mean_ci(value)) %>%
+  mutate(value = paste0(fmt_num(mean), " [", fmt_num(lo), ", ", fmt_num(hi), "] (n = ", n, ")")) %>%
+  select(measure, cond, value) %>%
+  pivot_wider(names_from = cond, values_from = value) %>%
+  left_join(rel_test, by = "measure") %>% mutate(p = fmt_p(p)) %>%
+  rename(Measure = measure, `p (Wilcoxon)` = p) %>%
+  kable(caption = "Participant-level reliance measures, mean [95% CI]. n differs because some measures are undefined for some participants.")
+```
+
+- **RAIR**, relative AI reliance: of the cases where the participant was initially wrong and the AI right, the share where they switched to the AI.
+- **RSR**, relative self-reliance: of the cases where the participant was initially right and the AI wrong, the share where they stayed with their own answer.
+
+### Switching after seeing the AI
+
+```{r switching}
+trials %>%
+  filter(agree_initial == 0) %>%
+  group_by(Condition = cond, ai_status) %>%
+  summarise(`Initial disagreements` = n(), `Switched to AI` = fmt_pct(mean(switch_to_ai)),
+            .groups = "drop") %>%
+  rename(`AI was` = ai_status) %>%
+  kable(caption = "When the initial prediction disagreed with the AI: how often participants switched to the AI's answer.")
+```
+
+## 2. Learning over the cases
+
+If people learn from feedback, accuracy and appropriate reliance could improve over the 8 cases in the feedback condition more than without feedback. With 8 cases, these tests have little power. We see a flat line.
+
+```{r fig-learning, fig.height = 3.8}
+learn <- trials %>%
+  select(cond, position, `Initial prediction` = initial_correct, `Final prediction` = final_correct) %>%
+  pivot_longer(c(`Initial prediction`, `Final prediction`), names_to = "prediction", values_to = "correct") %>%
+  mutate(prediction = factor(prediction, levels = c("Initial prediction", "Final prediction"))) %>%
+  group_by(prediction, cond, position) %>%
+  summarise(acc = mean(correct), n = n(), .groups = "drop")
+
+ggplot(learn, aes(position, acc, colour = cond)) +
+  geom_smooth(data = trials %>%
+                pivot_longer(c(initial_correct, final_correct), names_to = "prediction", values_to = "correct") %>%
+                mutate(prediction = factor(ifelse(prediction == "initial_correct", "Initial prediction", "Final prediction"),
+                                           levels = c("Initial prediction", "Final prediction"))),
+              aes(position, correct, colour = cond), method = "glm", method.args = list(family = binomial),
+              se = FALSE, linewidth = 0.8, formula = y ~ x) +
+  geom_point(size = 2, alpha = 0.8) +
+  facet_wrap(~ prediction) +
+  scale_colour_cond() +
+  scale_x_continuous(breaks = 1:8) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = "Case position", y = "Accuracy",
+       title = "Accuracy over trials",
+       subtitle = "lines: logistic fit") +
+  theme_pilot()
+```
+
+
+### Experience with AI errors
+
+In the feedback condition, participants learn after each case whether the AI was right. One indicator of learning is whether adherence on a case depends on how many AI errors the participant has already been shown.
+
+```{r ai-errors-before}
+m_err <- safe_glmer(agree_final ~ ai_errors_before + ai_correct + (1 | participant) + (1 | trial_id),
+                    trials %>% filter(condition == "feedback"))
+kable(or_kable(or_table(m_err), c(`(Intercept)` = "Intercept",
+                                  ai_errors_before = "AI errors shown before this case",
+                                  ai_correctTRUE = "AI correct on this case")),
+      caption = "Feedback condition only: adherence by the number of AI errors shown so far.")
+```
+
+```{r fig-errors-seen, fig.height = 3.6}
+# Per number of errors: no-feedback dots + mean/CI on the left, feedback on the right
+es <- parts %>%
+  mutate(offset = ifelse(as.numeric(cond) == 1, -0.20, 0.12),
+         x_dots = n_ai_errors + offset)
+
+es_sum <- es %>%
+  group_by(cond, n_ai_errors, offset) %>%
+  summarise(n = n(), mean = mean(final_acc), sd = sd(final_acc), .groups = "drop") %>%
+  mutate(half = ifelse(n >= 5, qt(0.975, n - 1) * sd / sqrt(n), NA_real_),
+         lo = mean - half, hi = mean + half,
+         x = n_ai_errors + offset + 0.12)
+
+ggplot(es, aes(y = final_acc, colour = cond)) +
+  geom_abline(intercept = 1, slope = -1/8, colour = sol[["base1"]],
+              linetype = "dashed", linewidth = 0.4) +
+  geom_point(aes(x = x_dots),
+             position = position_jitter(width = 0.04, height = 0.015, seed = 1),
+             alpha = 0.25, size = 1.3) +
+  geom_errorbar(data = filter(es_sum, !is.na(half)),
+                aes(x = x, y = mean, ymin = lo, ymax = hi), width = 0.05, linewidth = 0.7) +
+  geom_point(data = es_sum, aes(x = x, y = mean),
+             shape = 21, fill = "white", size = 2, stroke = 1) +
+  scale_colour_cond() +
+  scale_x_continuous(breaks = sort(unique(es$n_ai_errors))) +
+  scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.25)) +
+  coord_cartesian(ylim = c(-0.02, 1.03)) +
+  labs(x = "AI errors among the participant's 8 cases", y = "Final accuracy", colour = NULL,
+       title = "Final accuracy by number of AI errors seen",
+       subtitle = "Dashed line: accuracy from always following the AI") +
+  theme_pilot()
+```
+
+## 3. Questionnaire
+
+```{r fig-items, fig.height = 4.4}
+item_labels <- c(
+  trust = "I trust the AI model's predictions.",
+  decision_help = "The AI model helped me make correct decisions.",
+  learn_AI = "I learned when to rely on the AI model.",
+  learn_human = "I got a better sense of my own accuracy.",
+  understand_AI = "I understand how the AI model makes predictions.",
+  implement = "I would support using such a model for judges.",
+  bias = "The AI model treated all people fairly.")
+it <- parts %>% select(cond, all_of(names(item_labels))) %>%
+  pivot_longer(-cond, names_to = "item", values_to = "value") %>%
+  mutate(item = factor(item_labels[item], levels = rev(item_labels)))
+it_sum <- it %>% group_by(item, cond) %>% reframe(mean_ci(value))
+
+ggplot(it_sum, aes(mean, item, colour = cond)) +
+  geom_vline(xintercept = 4, colour = sol[["base1"]], linewidth = 0.4) +
+  geom_errorbarh(aes(xmin = lo, xmax = hi), height = 0, linewidth = 0.6,
+                 position = position_dodge(width = 0.5)) +
+  geom_point(size = 2.6, position = position_dodge(width = 0.5)) +
+  scale_colour_cond() +
+  scale_x_continuous(limits = c(1, 7), breaks = 1:7,
+                     labels = c("1\nStrongly\ndisagree", 2:3, "4\nNeutral", 5:6, "7\nStrongly\nagree")) +
+  labs(x = NULL, y = NULL, title = "Evaluations of the AI model",
+       subtitle = "Mean with 95% CI on a 7-point scale") +
+  theme_pilot()
+```
+
+```{r items-table}
+it %>% group_by(item) %>%
+  summarise(`No feedback` = fmt_num(mean(value[cond == "No feedback"], na.rm = TRUE)),
+            Feedback      = fmt_num(mean(value[cond == "Feedback"], na.rm = TRUE)),
+            p = fmt_p(tryCatch(wilcox.test(value ~ cond, exact = FALSE)$p.value, error = function(e) NA_real_))) %>%
+  arrange(desc(item)) %>%
+  rename(Item = item, `p (Wilcoxon)` = p) %>%
+  kable(caption = "Comparison between conditions.")
+```
+
+Quite counterintuitive effect for **"I learned when to rely on the AI model."**. It seems like when they get feedback, they realize that they cant learn when to rely.
+
+
+```{r trust-errors, fig.height = 3.4}
+ggplot(parts, aes(n_ai_errors, trust, colour = cond)) +
+  geom_jitter(width = 0.15, height = 0.15, alpha = 0.6, size = 1.8) +
+  geom_smooth(method = "lm", se = FALSE, formula = y ~ x, linewidth = 0.8) +
+  scale_colour_cond() +
+  scale_y_continuous(limits = c(1, 7), breaks = 1:7) +
+  labs(x = "AI errors among the participant's 8 cases", y = "Trust (1-7)",
+       title = "Trust by number of AI errors seen",
+       subtitle = "With feedback, trust should track the AI errors participants were shown") +
+  theme_pilot()
+```
+
+**Trust.** Here it seems like they do learn when seeing mistakes and update their trust accordingly in the feedback condition. The problem is that it does not lead to better discrimination. Even the higher trust at 0-1 errors seems valid. In the no-feedback condition trust stays constant or even rises when receiving more false AI advice. 
+
+## 4. Time and comprehension
+
+```{r fig-time, fig.height = 3.4}
+time_sum <- trials %>% group_by(cond, position) %>%
+  summarise(median_time = median(case_time), .groups = "drop")
+ggplot(time_sum, aes(position, median_time, colour = cond)) +
+  geom_line(linewidth = 0.8) + geom_point(size = 2) +
+  scale_colour_cond() +
+  scale_x_continuous(breaks = 1:8) +
+  expand_limits(y = 0) +
+  labs(x = "Case position", y = "Median seconds per case",
+       title = "Time per case (first + final prediction page)",
+       subtitle = "Feedback pages are not included") +
+  theme_pilot()
+```
+
+```{r time-table}
+parts %>% group_by(Condition = cond) %>%
+  summarise(`Survey duration, median (min)` = fmt_num(median(duration_min), 1),
+            `Time per case, median (s)` = fmt_num(median(median_case_time), 1)) %>%
+  kable(caption = "Time spent on the survey, by condition.")
+
+trials %>% filter(condition == "feedback") %>%
+  summarise(`Median time on feedback page (s)` = fmt_num(median(time_feedback, na.rm = TRUE), 1)) %>%
+  kable()
+```
+
+## 5. The cases
+
+Each point is one of the 40 cases. The x-axis shows how often participants' *initial* prediction, made before they saw the AI, agreed with the AI on that case. The y-axis shows how often the *final* prediction agreed with it. If participants could recognise the cases where the AI is wrong, those cases should sit lower on initial agreement and/or final agreement than the cases where the AI is right. Points above the diagonal are cases where the AI pulled people towards its answer.
+
+```{r fig-cases, fig.width = 7.5, fig.height = 4.4}
+cs <- trials %>%
+  group_by(trial_id, cond) %>%
+  summarise(ai = ifelse(first(ai_correct), "AI right", "AI wrong"),
+            init_agree = mean(agree_initial), adherence = mean(agree_final), n = n(),
+            .groups = "drop")
+
+ggplot(cs, aes(init_agree, adherence, colour = ai)) +
+  geom_abline(slope = 1, intercept = 0, colour = "grey75") +
+  geom_point(aes(size = n), alpha = 0.75) +
+  scale_size_area(max_size = 3.5, guide = "none") +
+  scale_colour_manual(values = c("AI right" = "#859900", "AI wrong" = "#d33682")) +
+  scale_x_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  facet_wrap(~ cond) +
+  labs(x = "Initial prediction agrees with AI", y = "Final prediction agrees with AI", colour = NULL,
+       title = "The 40 cases",
+       subtitle = "Above the diagonal: pulled towards the AI") +
+  theme_pilot()
+```
+
+```{r cases-table}
+cs %>%
+  group_by(Condition = cond, `AI on the case` = ai) %>%
+  summarise(Cases = n(),
+            `Initial agreement with AI` = fmt_pct(mean(init_agree)),
+            `Final agreement with AI` = fmt_pct(mean(adherence)),
+            `Pull towards AI (pp)` = fmt_num(100 * mean(adherence - init_agree), 1),
+            .groups = "drop") %>%
+  kable(caption = "Case-level means (each case weighted equally). Similar initial agreement for right and wrong AI cases means participants' own judgement does not signal when the AI errs.")
+```
+
+## 6. Open comments
+
+```{r comments, results = "asis"}
+# Answers that only say "no" or similar are counted, not printed:
+# no / nope / nah / n/a / na / nil / none / nothing / no comment(s) / -, /, . or x on their own
+trivial_re <- "^\\s*(no+|nope|nah|n\\s*/?\\s*a|nil|none|nothing|no\\s+comments?|-+|/+|\\.+|x)\\s*[.!]*\\s*$"
+
+if (file.exists(comments_file)) {
+  cm <- read_csv(comments_file, show_col_types = FALSE) %>%
+    filter(participant %in% parts$participant) %>%
+    mutate(open_comments = trimws(as.character(open_comments)),
+           empty   = is.na(open_comments) | open_comments == "",
+           trivial = !empty & grepl(trivial_re, open_comments, ignore.case = TRUE, perl = TRUE))
+  n_given   <- sum(!cm$empty)
+  n_trivial <- sum(cm$trivial)
+  shown     <- cm %>% filter(!empty, !trivial)
+
+  cat(sprintf(paste0("%d of the %d participants in the analysis sample answered the open question. ",
+                     "%d of these answers only said \"no\" or similar (e.g. \"nope\", \"-\", \"/\", \"n/a\") ",
+                     "and are not shown. The remaining %d comments (%d without feedback, %d with feedback) ",
+                     "are listed below.\n\n"),
+              n_given, nrow(parts), n_trivial, nrow(shown),
+              sum(shown$condition == cond_levels[1]), sum(shown$condition == cond_levels[2])))
+  if (nrow(shown)) {
+    print(kable(shown %>% mutate(condition = cond_labels[as.character(condition)]) %>%
+                  select(Participant = participant, Condition = condition, Comment = open_comments)))
+  }
+} else cat("No comments file found.")
+```
+
+## References
+
+Schemmer, M., Kühl, N., Benz, C., Bartos, A., & Satzger, G. (2023). Appropriate reliance on AI advice: Conceptualization and the effect of explanations. *Proceedings of IUI 2023*.
+
+Schoeffer, J., Jakubik, J., Voessing, M., Kuehl, N., & Satzger, G. (2023). On the interdependence of reliance behavior and accuracy in AI-assisted decision-making. *HHAI 2023*. Extended version: arXiv:2304.08804.
+
+## Session info
+
+```{r session}
+sessionInfo()
+```
